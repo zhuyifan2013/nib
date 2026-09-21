@@ -23,4 +23,9 @@
 
 ## 状态
 
-M1 进行中：最小运行时（macOS WKWebView 绑定 + IPC 协议骨架）。
+M1 进行中：
+- [x] macOS WKWebView 绑定 + IPC 协议骨架（增量编译 1.4s，二进制 3.8MB）
+- [x] demo 全链路验证：窗口 → JS 桥 → IPC → Go 绑定 → 返回（`go run ./cmd/demo`）
+- [ ] Dev Harness 常驻外壳（后端热替换）
+- [ ] 绑定生成器（Go AST → TypeScript）
+- [ ] Windows（WebView2）/ Linux（WebKitGTK）绑定
