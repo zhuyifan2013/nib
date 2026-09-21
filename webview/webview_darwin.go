@@ -29,24 +29,24 @@ import (
 	"nib.dev/nib/ipc"
 )
 
-// registry 将 C 侧持有的 goHandle 映射回 Go 的 Window。
-var registry sync.Map // unsafe.Pointer -> *Window
+// registry 将 C 侧持有的 token（C 内存）映射回 Go 的 Window。
+// 使用 C.malloc 分配的 token 而非 Go 指针，遵守 cgo 指针传递规则。
+var registry sync.Map // unsafe.Pointer(C token) -> *Window
 
 // Window 是 macOS 上 NSWindow + WKWebView 的封装。
 type Window struct {
-	handle   unsafe.Pointer // *C 结构（webview_darwin.m 中 malloc）
-	goHandle unsafe.Pointer // 本对象指针，作为 registry 键
-	handlers sync.Map       // name -> ipc.Handler
+	handle  unsafe.Pointer // *C 结构（webview_darwin.m 中 malloc）
+	token   unsafe.Pointer // C.malloc(1) 分配的注册表键
+	handlers sync.Map      // name -> ipc.Handler
 }
 
 func New(opts Options) *Window {
 	title := C.CString(opts.Title)
 	defer C.free(unsafe.Pointer(title))
 	h := C.nibWindowCreate(title, C.int(opts.Width), C.int(opts.Height), cbool(opts.DevTools))
-	w := &Window{handle: h}
-	w.goHandle = unsafe.Pointer(w)
-	registry.Store(w.goHandle, w)
-	C.nibWindowSetGoHandle(h, w.goHandle)
+	w := &Window{handle: h, token: C.malloc(1)}
+	registry.Store(w.token, w)
+	C.nibWindowSetGoHandle(h, w.token)
 	return w
 }
 
