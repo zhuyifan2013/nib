@@ -1,0 +1,11 @@
+{
+  "docsDir": "docs",
+  "cacheDir": ".markdash/cache",
+  "include": [
+    "**/*.md"
+  ],
+  "exclude": [
+    "archive/**"
+  ],
+  "staleDays": 14
+}

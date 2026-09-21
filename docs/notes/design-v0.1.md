@@ -1,3 +1,14 @@
+---
+id: design-v0-1
+title: Nib 框架设计文档 v0.1
+type: doc
+status: active
+tags: [design, roadmap]
+related: [nib]
+created_at: 2026-09-21
+updated_at: 2026-09-21
+---
+
 # Nib — AI 时代跨平台桌面框架 · 设计文档 v0.1（草案）
 
 > 状态：草案，供讨论

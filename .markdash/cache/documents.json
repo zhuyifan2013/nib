@@ -1,0 +1,866 @@
+{
+  "generated_at": "2026-09-21T14:28:13.223Z",
+  "summary": {
+    "totals": {
+      "documents": 28,
+      "tasks": 9,
+      "risks": 4,
+      "decisions": 6,
+      "tests": 2
+    },
+    "tasks": {
+      "by_status": {
+        "todo": 3,
+        "backlog": 5,
+        "done": 1
+      },
+      "blocked": [],
+      "in_progress": [],
+      "overdue": []
+    },
+    "risks": {
+      "open": [
+        {
+          "id": "cgo-maintenance",
+          "title": "CGO 平台层维护成本",
+          "type": "risk",
+          "status": "open",
+          "path": "docs/risks/cgo-maintenance.md",
+          "updated_at": "2026-09-21"
+        },
+        {
+          "id": "dev-harness-complexity",
+          "title": "Dev Harness 热替换技术难度",
+          "type": "risk",
+          "status": "open",
+          "path": "docs/risks/dev-harness-complexity.md",
+          "updated_at": "2026-09-21"
+        },
+        {
+          "id": "scope-creep",
+          "title": "里程碑前功能蔓延",
+          "type": "risk",
+          "status": "open",
+          "path": "docs/risks/scope-creep.md",
+          "updated_at": "2026-09-21"
+        },
+        {
+          "id": "webview-fragmentation",
+          "title": "系统 WebView 跨平台碎片化",
+          "type": "risk",
+          "status": "open",
+          "path": "docs/risks/webview-fragmentation.md",
+          "updated_at": "2026-09-21"
+        }
+      ],
+      "high": [
+        {
+          "id": "dev-harness-complexity",
+          "title": "Dev Harness 热替换技术难度",
+          "type": "risk",
+          "status": "open",
+          "path": "docs/risks/dev-harness-complexity.md",
+          "updated_at": "2026-09-21"
+        },
+        {
+          "id": "scope-creep",
+          "title": "里程碑前功能蔓延",
+          "type": "risk",
+          "status": "open",
+          "path": "docs/risks/scope-creep.md",
+          "updated_at": "2026-09-21"
+        }
+      ]
+    },
+    "tests": {
+      "by_status": {
+        "passing": 1,
+        "planned": 1
+      }
+    },
+    "stale": [],
+    "recent": [
+      {
+        "id": "ipc-error-path",
+        "title": "IPC 错误路径测试",
+        "type": "test",
+        "status": "planned",
+        "path": "docs/tests/ipc-error-path.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "demo-e2e-manual",
+        "title": "Demo 全链路人工验证（macOS）",
+        "type": "test",
+        "status": "passing",
+        "path": "docs/tests/demo-e2e-manual.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "webview-windows",
+        "title": "Windows WebView2 绑定",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/webview-windows.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "webview-linux",
+        "title": "Linux WebKitGTK 绑定",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/webview-linux.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "minimal-runtime-mac",
+        "title": "M1 最小运行时（macOS）",
+        "type": "task",
+        "status": "done",
+        "path": "docs/tasks/minimal-runtime-mac.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "m4-distribution",
+        "title": "M4 发行形态（增量更新 / UI 动态下发）",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/m4-distribution.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "m3-security",
+        "title": "M3 安全层（权限注解 / 依赖审计 / 沙箱）",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/m3-security.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "m2-diagnostics",
+        "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/m2-diagnostics.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "ipc-error-path-test",
+        "title": "IPC 错误路径验证",
+        "type": "task",
+        "status": "todo",
+        "path": "docs/tasks/ipc-error-path-test.md",
+        "updated_at": "2026-09-21"
+      },
+      {
+        "id": "dev-harness",
+        "title": "Dev Harness 常驻外壳（后端热替换）",
+        "type": "task",
+        "status": "todo",
+        "path": "docs/tasks/dev-harness.md",
+        "updated_at": "2026-09-21"
+      }
+    ],
+    "generated_at": "2026-09-21T14:28:13.223Z"
+  },
+  "documents": [
+    {
+      "id": "bridge-base64-response",
+      "title": "桥接响应经 base64 传递",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "ipc",
+        "webview"
+      ],
+      "related": [
+        "error-envelope"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/decisions/bridge-base64-response.md"
+    },
+    {
+      "id": "error-envelope",
+      "title": "跨边界错误信封设计",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "ipc",
+        "diagnostics"
+      ],
+      "related": [
+        "go-backend",
+        "m2-diagnostics"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/decisions/error-envelope.md"
+    },
+    {
+      "id": "framework-naming",
+      "title": "框架命名 Nib",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "branding"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/decisions/framework-naming.md"
+    },
+    {
+      "id": "go-backend",
+      "title": "后端语言选 Go",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "language",
+        "architecture"
+      ],
+      "related": [
+        "system-webview",
+        "no-ai-runtime"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/decisions/go-backend.md"
+    },
+    {
+      "id": "no-ai-runtime",
+      "title": "框架不内置 AI 运行时",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "scope",
+        "ai"
+      ],
+      "related": [
+        "go-backend"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/decisions/no-ai-runtime.md"
+    },
+    {
+      "id": "system-webview",
+      "title": "渲染用系统 WebView，不打包浏览器",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "architecture",
+        "rendering"
+      ],
+      "related": [
+        "go-backend",
+        "webview-fragmentation"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/decisions/system-webview.md"
+    },
+    {
+      "id": "guide-agent-workflow",
+      "title": "Agent workflow",
+      "type": "doc",
+      "status": "active",
+      "owner": "markdash",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "guide",
+        "workflow"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-15",
+      "updated_at": "2026-09-16",
+      "path": "docs/guide/agent-workflow.md"
+    },
+    {
+      "id": "guide-documentation-policy",
+      "title": "Documentation update policy",
+      "type": "doc",
+      "status": "active",
+      "owner": "markdash",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "guide",
+        "policy"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-15",
+      "updated_at": "2026-09-16",
+      "path": "docs/guide/documentation-policy.md"
+    },
+    {
+      "id": "guide-metadata-schema",
+      "title": "Frontmatter metadata schema",
+      "type": "doc",
+      "status": "active",
+      "owner": "markdash",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "guide",
+        "schema"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-15",
+      "updated_at": "2026-09-16",
+      "path": "docs/guide/metadata-schema.md"
+    },
+    {
+      "id": "doc-index",
+      "title": "Project index",
+      "type": "doc",
+      "status": "active",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "index"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/index.md"
+    },
+    {
+      "id": "design-v0-1",
+      "title": "Nib 框架设计文档 v0.1",
+      "type": "doc",
+      "status": "active",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "design",
+        "roadmap"
+      ],
+      "related": [
+        "nib"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/notes/design-v0.1.md"
+    },
+    {
+      "id": "dev-workflow",
+      "title": "开发环境与本机工作流",
+      "type": "note",
+      "status": "active",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "operations",
+        "macos"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/operations/dev-workflow.md"
+    },
+    {
+      "id": "nib",
+      "title": "Nib — AI 时代跨平台桌面框架",
+      "type": "project",
+      "status": "active",
+      "owner": "ai",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "desktop",
+        "framework",
+        "go",
+        "webview"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "green",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/projects/nib.md"
+    },
+    {
+      "id": "cgo-maintenance",
+      "title": "CGO 平台层维护成本",
+      "type": "risk",
+      "status": "open",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "cgo",
+        "webview"
+      ],
+      "related": [
+        "system-webview"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "medium",
+      "impact": "medium",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/risks/cgo-maintenance.md"
+    },
+    {
+      "id": "dev-harness-complexity",
+      "title": "Dev Harness 热替换技术难度",
+      "type": "risk",
+      "status": "open",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "dev-experience",
+        "m1"
+      ],
+      "related": [
+        "dev-harness"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "medium",
+      "impact": "high",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/risks/dev-harness-complexity.md"
+    },
+    {
+      "id": "scope-creep",
+      "title": "里程碑前功能蔓延",
+      "type": "risk",
+      "status": "open",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "process"
+      ],
+      "related": [
+        "design-v0-1"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "high",
+      "impact": "medium",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/risks/scope-creep.md"
+    },
+    {
+      "id": "webview-fragmentation",
+      "title": "系统 WebView 跨平台碎片化",
+      "type": "risk",
+      "status": "open",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "webview",
+        "cross-platform"
+      ],
+      "related": [
+        "system-webview"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "medium",
+      "impact": "medium",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/risks/webview-fragmentation.md"
+    },
+    {
+      "id": "binding-generator",
+      "title": "绑定生成器（Go AST → TypeScript）",
+      "type": "task",
+      "status": "todo",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "m1",
+        "codegen",
+        "dx"
+      ],
+      "related": [
+        "dev-harness",
+        "error-envelope"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/binding-generator.md"
+    },
+    {
+      "id": "dev-harness",
+      "title": "Dev Harness 常驻外壳（后端热替换）",
+      "type": "task",
+      "status": "todo",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "m1",
+        "dev-experience"
+      ],
+      "related": [
+        "dev-harness-complexity",
+        "binding-generator"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/dev-harness.md"
+    },
+    {
+      "id": "ipc-error-path-test",
+      "title": "IPC 错误路径验证",
+      "type": "task",
+      "status": "todo",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "m1",
+        "ipc",
+        "testing"
+      ],
+      "related": [
+        "demo-e2e-manual",
+        "error-envelope"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/ipc-error-path-test.md"
+    },
+    {
+      "id": "m2-diagnostics",
+      "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
+      "type": "task",
+      "status": "backlog",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "m2",
+        "observability"
+      ],
+      "related": [
+        "error-envelope",
+        "binding-generator"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/m2-diagnostics.md"
+    },
+    {
+      "id": "m3-security",
+      "title": "M3 安全层（权限注解 / 依赖审计 / 沙箱）",
+      "type": "task",
+      "status": "backlog",
+      "owner": "ai",
+      "priority": "medium",
+      "due": "",
+      "tags": [
+        "m3",
+        "security"
+      ],
+      "related": [
+        "m2-diagnostics"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/m3-security.md"
+    },
+    {
+      "id": "m4-distribution",
+      "title": "M4 发行形态（增量更新 / UI 动态下发）",
+      "type": "task",
+      "status": "backlog",
+      "owner": "ai",
+      "priority": "medium",
+      "due": "",
+      "tags": [
+        "m4",
+        "distribution"
+      ],
+      "related": [],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/m4-distribution.md"
+    },
+    {
+      "id": "minimal-runtime-mac",
+      "title": "M1 最小运行时（macOS）",
+      "type": "task",
+      "status": "done",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "m1",
+        "runtime",
+        "macos"
+      ],
+      "related": [
+        "demo-e2e-manual",
+        "system-webview",
+        "go-backend"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/minimal-runtime-mac.md"
+    },
+    {
+      "id": "webview-linux",
+      "title": "Linux WebKitGTK 绑定",
+      "type": "task",
+      "status": "backlog",
+      "owner": "ai",
+      "priority": "medium",
+      "due": "",
+      "tags": [
+        "m1",
+        "webview",
+        "linux"
+      ],
+      "related": [
+        "minimal-runtime-mac"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/webview-linux.md"
+    },
+    {
+      "id": "webview-windows",
+      "title": "Windows WebView2 绑定",
+      "type": "task",
+      "status": "backlog",
+      "owner": "ai",
+      "priority": "medium",
+      "due": "",
+      "tags": [
+        "m1",
+        "webview",
+        "windows"
+      ],
+      "related": [
+        "minimal-runtime-mac"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tasks/webview-windows.md"
+    },
+    {
+      "id": "demo-e2e-manual",
+      "title": "Demo 全链路人工验证（macOS）",
+      "type": "test",
+      "status": "passing",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "m1",
+        "e2e"
+      ],
+      "related": [
+        "minimal-runtime-mac"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "manual",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tests/demo-e2e-manual.md"
+    },
+    {
+      "id": "ipc-error-path",
+      "title": "IPC 错误路径测试",
+      "type": "test",
+      "status": "planned",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "m1",
+        "ipc"
+      ],
+      "related": [
+        "ipc-error-path-test",
+        "error-envelope"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "e2e",
+      "health": "",
+      "created_at": "2026-09-21",
+      "updated_at": "2026-09-21",
+      "path": "docs/tests/ipc-error-path.md"
+    }
+  ]
+}
