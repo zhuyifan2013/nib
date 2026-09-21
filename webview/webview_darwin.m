@@ -25,8 +25,8 @@ static NSString* const kBridgeJS =
     "window.__nibResolve=function(id,ok,b64){"
     "var p=window.__nibPending[id];if(!p)return;"
     "delete window.__nibPending[id];"
-    "var payload=JSON.parse(atob(b64));"
-    "if(ok)p.resolve(payload);else p.reject(payload);"
+    "var env=JSON.parse(atob(b64));"
+    "if(ok){p.resolve(env.result);}else{p.reject(env.error||env);}"
     "};"
     "})();";
 
