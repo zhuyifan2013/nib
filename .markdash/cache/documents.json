@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T14:28:13.223Z",
+  "generated_at": "2026-09-22T12:32:20.340Z",
   "summary": {
     "totals": {
       "documents": 28,
@@ -10,9 +10,9 @@
     },
     "tasks": {
       "by_status": {
-        "todo": 3,
-        "backlog": 5,
-        "done": 1
+        "todo": 2,
+        "done": 2,
+        "backlog": 5
       },
       "blocked": [],
       "in_progress": [],
@@ -74,8 +74,7 @@
     },
     "tests": {
       "by_status": {
-        "passing": 1,
-        "planned": 1
+        "passing": 2
       }
     },
     "stale": [],
@@ -84,9 +83,25 @@
         "id": "ipc-error-path",
         "title": "IPC 错误路径测试",
         "type": "test",
-        "status": "planned",
+        "status": "passing",
         "path": "docs/tests/ipc-error-path.md",
-        "updated_at": "2026-09-21"
+        "updated_at": "2026-09-22"
+      },
+      {
+        "id": "ipc-error-path-test",
+        "title": "IPC 错误路径验证",
+        "type": "task",
+        "status": "done",
+        "path": "docs/tasks/ipc-error-path-test.md",
+        "updated_at": "2026-09-22"
+      },
+      {
+        "id": "doc-index",
+        "title": "Project index",
+        "type": "doc",
+        "status": "active",
+        "path": "docs/index.md",
+        "updated_at": "2026-09-22"
       },
       {
         "id": "demo-e2e-manual",
@@ -143,25 +158,9 @@
         "status": "backlog",
         "path": "docs/tasks/m2-diagnostics.md",
         "updated_at": "2026-09-21"
-      },
-      {
-        "id": "ipc-error-path-test",
-        "title": "IPC 错误路径验证",
-        "type": "task",
-        "status": "todo",
-        "path": "docs/tasks/ipc-error-path-test.md",
-        "updated_at": "2026-09-21"
-      },
-      {
-        "id": "dev-harness",
-        "title": "Dev Harness 常驻外壳（后端热替换）",
-        "type": "task",
-        "status": "todo",
-        "path": "docs/tasks/dev-harness.md",
-        "updated_at": "2026-09-21"
       }
     ],
-    "generated_at": "2026-09-21T14:28:13.223Z"
+    "generated_at": "2026-09-22T12:32:20.340Z"
   },
   "documents": [
     {
@@ -402,7 +401,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-21",
+      "updated_at": "2026-09-22",
       "path": "docs/index.md"
     },
     {
@@ -634,7 +633,7 @@
       "id": "ipc-error-path-test",
       "title": "IPC 错误路径验证",
       "type": "task",
-      "status": "todo",
+      "status": "done",
       "owner": "ai",
       "priority": "high",
       "due": "",
@@ -645,7 +644,8 @@
       ],
       "related": [
         "demo-e2e-manual",
-        "error-envelope"
+        "error-envelope",
+        "ipc-error-path"
       ],
       "project": "",
       "blocked_by": [],
@@ -654,7 +654,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-21",
+      "updated_at": "2026-09-22",
       "path": "docs/tasks/ipc-error-path-test.md"
     },
     {
@@ -840,7 +840,7 @@
       "id": "ipc-error-path",
       "title": "IPC 错误路径测试",
       "type": "test",
-      "status": "planned",
+      "status": "passing",
       "owner": "",
       "priority": "",
       "due": "",
@@ -859,7 +859,7 @@
       "kind": "e2e",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-21",
+      "updated_at": "2026-09-22",
       "path": "docs/tests/ipc-error-path.md"
     }
   ]
