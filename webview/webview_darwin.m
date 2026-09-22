@@ -20,7 +20,7 @@ static NSString* const kBridgeJS =
     "return new Promise(function(resolve,reject){"
     "var id='m'+(++seq);"
     "window.__nibPending[id]={resolve:resolve,reject:reject};"
-    "window.webkit.messageHandlers.nib.postMessage(JSON.stringify({id:id,call:call,args:args||null}));"
+    "window.webkit.messageHandlers.nib.postMessage(JSON.stringify({id:id,dir:'request',call:call,args:args||null}));"
     "});};"
     "window.__nibResolve=function(id,ok,b64){"
     "var p=window.__nibPending[id];if(!p)return;"
@@ -105,39 +105,56 @@ void nibWindowSetGoHandle(void* w, void* handle) {
     ((NibWindow*)w)->goHandle = handle;
 }
 
+// 说明：AppKit/WKWebView 只允许在主线程操作。
+// Go 侧任何 goroutine 都可能调到这里（如 harness shell 的转发 goroutine），
+// 因此除 create/run（约定主线程调用）外，全部异步派发到主队列执行。
+
 void nibWindowNavigate(void* w, const char* target) {
     NibWindow* nib = (NibWindow*)w;
     NSString* t = [NSString stringWithUTF8String:target];
-    if ([t hasPrefix:@"<"]) {
-        [nib->webview loadHTMLString:t baseURL:nil];
-    } else {
-        NSURL* url = [NSURL URLWithString:t];
-        [nib->webview loadRequest:[NSURLRequest requestWithURL:url]];
-    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if ([t hasPrefix:@"<"]) {
+            [nib->webview loadHTMLString:t baseURL:nil];
+        } else {
+            NSURL* url = [NSURL URLWithString:t];
+            [nib->webview loadRequest:[NSURLRequest requestWithURL:url]];
+        }
+    });
 }
 
 void nibWindowEval(void* w, const char* js) {
     NibWindow* nib = (NibWindow*)w;
     NSString* script = [NSString stringWithUTF8String:js];
-    [nib->webview evaluateJavaScript:script completionHandler:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [nib->webview evaluateJavaScript:script completionHandler:nil];
+    });
 }
 
 void nibWindowSetTitle(void* w, const char* title) {
-    [((NibWindow*)w)->window setTitle:[NSString stringWithUTF8String:title]];
+    NibWindow* nib = (NibWindow*)w;
+    NSString* t = [NSString stringWithUTF8String:title];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [nib->window setTitle:t];
+    });
 }
 
 void nibWindowResize(void* w, int width, int height) {
     NibWindow* nib = (NibWindow*)w;
-    NSRect frame = [nib->window frame];
-    frame.size = NSMakeSize(width, height);
-    [nib->window setFrame:frame display:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSRect frame = [nib->window frame];
+        frame.size = NSMakeSize(width, height);
+        [nib->window setFrame:frame display:YES];
+    });
 }
 
 void nibWindowRun(void* w) {
     (void)w;
-    [NSApp run];
+    [NSApp run]; // 必须在主线程：Go 侧 webview.New 已 runtime.LockOSThread
 }
 
 void nibWindowClose(void* w) {
-    [((NibWindow*)w)->window close];
+    NibWindow* nib = (NibWindow*)w;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [nib->window close];
+    });
 }

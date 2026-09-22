@@ -56,7 +56,8 @@ Every design decision follows from it:
 > Binding generator, dev harness, and Windows/Linux support are next.
 
 **Working today:** windows, JS bridge, IPC protocol, error envelope, Go bindings,
-base64 response transport. Verified by [`cmd/demo`](cmd/demo/main.go).
+base64 response transport, binding generator (Go → TypeScript), dev harness with
+~1 s backend hot-swap (`nib dev`). Verified by [`cmd/demo`](cmd/demo/main.go).
 
 **Planned:** see [Roadmap](#roadmap).
 
@@ -195,7 +196,7 @@ The ~33% size overhead is irrelevant for IPC-sized payloads.
 - [x] **M1 core runtime** — macOS WKWebView binding, IPC protocol, error envelope, demo verified end-to-end
 - [x] IPC error-path tests ([task](docs/tasks/ipc-error-path-test.md))
 - [x] Binding generator — Go AST → TypeScript, `call` / `stream` / `event` ([task](docs/tasks/binding-generator.md))
-- [ ] Dev harness — persistent shell + backend hot-swap (<2 s iteration)
+- [x] Dev harness — persistent shell + backend hot-swap (<2 s iteration) ([task](docs/tasks/dev-harness.md))
 - [ ] Windows (WebView2) and Linux (WebKitGTK) bindings
 - [ ] **M2 diagnostics** — runtime event stream, `--json` CLI, headless driver, MCP server
 - [ ] **M3 security** — permission annotations (default-deny), dependency audit, `dev --sandbox`

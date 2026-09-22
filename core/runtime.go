@@ -2,7 +2,12 @@
 // 平台相关实现位于 webview/ 包（按构建标签拆分），此处仅持有接口。
 package core
 
-import "nib.dev/nib/ipc"
+import (
+	"os"
+
+	"nib.dev/nib/harness"
+	"nib.dev/nib/ipc"
+)
 
 // Handler 是绑定方法的签名（别名自 ipc，避免 core ↔ webview 循环依赖）。
 type Handler = ipc.Handler
@@ -54,14 +59,24 @@ func New(opts Options) *Runtime {
 	return &Runtime{opts: opts, bindings: map[string]Handler{}}
 }
 
+// openWindow 选择窗口实现：dev harness 远程窗口或平台原生窗口。
+func (r *Runtime) openWindow() (Window, error) {
+	if sock := os.Getenv("NIB_SOCK"); sock != "" {
+		return harness.DialRemote(sock)
+	}
+	return newWindow(r.opts) // 由平台文件（runtime_$(GOOS).go）提供
+}
+
 // Bind 注册一个可被前端通过 window.nib.invoke("Service.Method", args) 调用的方法。
 func (r *Runtime) Bind(name string, h Handler) {
 	r.bindings[name] = h
 }
 
 // Run 创建主窗口、应用全部绑定并进入事件循环。
+// 环境变量 NIB_SOCK 存在时（dev harness 模式），不建本地窗口，
+// 改为连接常驻 shell 进程：业务代码同一份，运行形态由环境切换。
 func (r *Runtime) Run(startURL string) error {
-	win, err := newWindow(r.opts) // 由平台文件（runtime_$(GOOS).go）提供
+	win, err := r.openWindow()
 	if err != nil {
 		return err
 	}

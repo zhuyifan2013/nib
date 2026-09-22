@@ -2,14 +2,14 @@
 id: dev-harness-complexity
 title: Dev Harness 热替换技术难度
 type: risk
-status: open
+status: mitigated
 probability: medium
 impact: high
 mitigation: 验收底线设为 <2s 快速重启，真热替换（goroutine 组替换 + 状态快照）作为理想形态逐步逼近
 tags: [dev-experience, m1]
 related: [dev-harness]
 created_at: 2026-09-21
-updated_at: 2026-09-21
+updated_at: 2026-09-22
 ---
 
 # Dev Harness 热替换难度

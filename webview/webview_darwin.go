@@ -23,6 +23,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"sync"
 	"unsafe"
 
@@ -35,12 +36,15 @@ var registry sync.Map // unsafe.Pointer(C token) -> *Window
 
 // Window 是 macOS 上 NSWindow + WKWebView 的封装。
 type Window struct {
-	handle  unsafe.Pointer // *C 结构（webview_darwin.m 中 malloc）
-	token   unsafe.Pointer // C.malloc(1) 分配的注册表键
-	handlers sync.Map      // name -> ipc.Handler
+	handle   unsafe.Pointer         // *C 结构（webview_darwin.m 中 malloc）
+	token    unsafe.Pointer         // C.malloc(1) 分配的注册表键
+	handlers sync.Map               // name -> ipc.Handler
+	forward  func(msg *ipc.Message) // 非空时 dispatch 整体转发（harness shell 用）
 }
 
 func New(opts Options) *Window {
+	// AppKit 要求主线程运行事件循环；锁定当前（主）goroutine 防止调度器迁移。
+	runtime.LockOSThread()
 	title := C.CString(opts.Title)
 	defer C.free(unsafe.Pointer(title))
 	h := C.nibWindowCreate(title, C.int(opts.Width), C.int(opts.Height), cbool(opts.DevTools))
@@ -77,6 +81,10 @@ func nibIPCMessage(goHandle unsafe.Pointer, body *C.char) {
 }
 
 func (w *Window) dispatch(msg *ipc.Message) {
+	if w.forward != nil {
+		w.forward(msg)
+		return
+	}
 	v, ok := w.handlers.Load(msg.Call)
 	if !ok {
 		w.deliver(msg.ID, nil, ipc.NewError("ipc/not_found", "no binding for "+msg.Call))
@@ -84,6 +92,17 @@ func (w *Window) dispatch(msg *ipc.Message) {
 	}
 	result, e := v.(ipc.Handler)(msg.Args)
 	w.deliver(msg.ID, result, e)
+}
+
+// SetForward 设置整体转发函数：非空时，前端调用不再分发给本地 handler，
+// 而是交给 f（dev harness 的 shell 进程用它把调用转发给业务进程）。
+func (w *Window) SetForward(f func(msg *ipc.Message)) {
+	w.forward = f
+}
+
+// DeliverResponse 把一条已构造好的响应消息经 JS 桥送回前端（harness 转发用）。
+func (w *Window) DeliverResponse(m *ipc.Message) {
+	w.deliverMessage(m)
 }
 
 // deliver 把响应编码后经 JS 桥送回前端（base64 包裹避免转义问题）。
@@ -105,6 +124,19 @@ func (w *Window) deliver(id string, result any, e *ipc.Error) {
 	if err != nil {
 		return
 	}
+	w.deliverRaw(m.ID, ok, payload)
+}
+
+// deliverMessage 编码完整消息信封并送回前端。
+func (w *Window) deliverMessage(m *ipc.Message) {
+	payload, err := ipc.Marshal(m)
+	if err != nil {
+		return
+	}
+	w.deliverRaw(m.ID, m.Dir == ipc.DirResponse && m.Error == nil, payload)
+}
+
+func (w *Window) deliverRaw(id string, ok bool, payload []byte) {
 	b64 := base64.StdEncoding.EncodeToString(payload)
 	js := fmt.Sprintf(`window.__nibResolve(%q, %t, %q)`, id, ok, b64)
 	w.Eval(js)
@@ -143,4 +175,3 @@ func (w *Window) Close() error {
 	C.nibWindowClose(w.handle)
 	return nil
 }
-
