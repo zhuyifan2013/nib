@@ -52,8 +52,9 @@ Every design decision follows from it:
 
 ## Status
 
-> **M1 — minimal runtime.** The macOS chain is verified end-to-end.
-> Binding generator, dev harness, and Windows/Linux support are next.
+> **M1 — minimal runtime: complete.** The macOS chain is verified end-to-end:
+> runtime, error paths, binding generator, and the dev harness with
+> ~1 s backend hot-swap. Windows/Linux support and M2 diagnostics are next.
 
 **Working today:** windows, JS bridge, IPC protocol, error envelope, Go bindings,
 base64 response transport, binding generator (Go → TypeScript), dev harness with
@@ -73,6 +74,9 @@ go run ./cmd/demo
 
 A window opens. Click the button to see the full round-trip:
 `JS bridge → IPC envelope → Go binding → structured response → Promise`.
+
+For development, `nib dev ./cmd/demo` keeps the window alive and hot-swaps the
+Go backend in ~1 s on every save — no window flicker, no restart.
 
 ## Usage
 
@@ -119,10 +123,22 @@ try {
   await window.nib.invoke("GreetService.Greet", { name: 42 });
 } catch (e) {
   e.code;      // "greet/invalid_args"
-  e.chain;     // [{layer:"js",...},{layer:"ipc",...},{layer:"go",...}]
+  e.message;   // "json: cannot unmarshal number into Go value of type string"
   e.retryable; // false
-  e.doc;       // "https://nib.dev/errors#greet-invalid-args"
+  e.chain;     // JS → IPC → Go causal chain (populated by M2 diagnostics)
 }
+```
+
+Generate a type-safe TypeScript client from the same Go source:
+
+```sh
+go run nib.dev/nib/cmd/nibgen -out ./frontend/src/bindings ./cmd/demo
+```
+
+```typescript
+import { GreetService } from './bindings';
+const result: string = await GreetService.Greet({ name: "AI" });
+// compile-time sync with Go — rename a method and the frontend won't build
 ```
 
 ## How it works
@@ -133,10 +149,10 @@ try {
 │              · MCP server                               │
 │ Security     permission annotations · dependency audit  │  planned (M3)
 ├────────────────────────────────────────────────────────┤
-│ API surface  binding generator (Go AST → TS) · error    │  generator planned
-│              envelope · call / stream / event IPC       │
+│ API surface  binding generator (Go AST → TS) · error    │  ✅ generator done
+│              envelope · call IPC (stream/event: M4)     │
 ├────────────────────────────────────────────────────────┤
-│ Dev harness  persistent shell · backend hot-swap · HMR  │  planned (M1)
+│ Dev harness  persistent shell · backend hot-swap · HMR  │  ✅ ~1 s hot-swap
 ├────────────────────────────────────────────────────────┤
 │ Runtime      Go core + system WebView bindings          │  ✅ macOS today
 │              (WKWebView / WebView2 / WebKitGTK)         │
@@ -148,8 +164,9 @@ try {
 | [`ipc/`](ipc/protocol.go) | **Protocol** | Single source of truth for JS ↔ Go: the error envelope (`code`, `message`, `chain[]`, `retryable`, `doc`) and the message envelope (`call` / `stream` / `event`). |
 | [`core/`](core/runtime.go) | **Abstraction** | Platform-independent `Runtime` / `Window`. Bindings are registered before `Run()` and applied at window creation. |
 | [`webview/`](webview/webview_darwin.go) | **Platform bindings** | The *only* platform-specific code — thin CGO wrappers over the system WebView, plus the injected JS bridge (`window.nib.invoke`). ~1.5k lines per platform, nothing platform-specific leaks upward. |
-| `binding/` | **Generator** *(planned)* | Parses Go services with `go/ast` and emits a type-safe TypeScript client. |
-| `cli/` | **Toolchain** *(planned)* | `nib new / dev / build / doctor / ship / audit` — every command speaks `--json` so AI agents can drive it. |
+| [`binding/`](binding/model.go) | **Generator** | Parses Go services with `go/ast` + `go/types` (zero deps) and emits a type-safe TypeScript client: one file per service, incremental writes. |
+| [`harness/`](harness/dev.go) | **Dev harness** | Two-process architecture: persistent shell window + hot-swappable app process over a unix socket; the app's `core.Window` becomes remote via `NIB_SOCK`. |
+| [`cmd/nib`](cmd/nib/main.go) | **CLI** *(growing)* | `nib dev` today; `new / build / doctor / ship / audit --json` planned so AI agents can drive it. |
 | [`cmd/demo`](cmd/demo/main.go) | **Demo** | Minimal end-to-end app; the acceptance test for every platform port. |
 
 **IPC transport.** Frontend calls are JSON messages posted via
