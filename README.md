@@ -193,8 +193,8 @@ The ~33% size overhead is irrelevant for IPC-sized payloads.
 ## Roadmap
 
 - [x] **M1 core runtime** — macOS WKWebView binding, IPC protocol, error envelope, demo verified end-to-end
-- [ ] IPC error-path tests ([task](docs/tasks/ipc-error-path-test.md))
-- [ ] Binding generator — Go AST → TypeScript, `call` / `stream` / `event`
+- [x] IPC error-path tests ([task](docs/tasks/ipc-error-path-test.md))
+- [x] Binding generator — Go AST → TypeScript, `call` / `stream` / `event` ([task](docs/tasks/binding-generator.md))
 - [ ] Dev harness — persistent shell + backend hot-swap (<2 s iteration)
 - [ ] Windows (WebView2) and Linux (WebKitGTK) bindings
 - [ ] **M2 diagnostics** — runtime event stream, `--json` CLI, headless driver, MCP server

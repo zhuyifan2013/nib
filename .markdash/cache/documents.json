@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-22T12:32:20.340Z",
+  "generated_at": "2026-09-22T12:49:43.023Z",
   "summary": {
     "totals": {
-      "documents": 28,
+      "documents": 29,
       "tasks": 9,
       "risks": 4,
-      "decisions": 6,
+      "decisions": 7,
       "tests": 2
     },
     "tasks": {
       "by_status": {
-        "todo": 2,
-        "done": 2,
+        "done": 3,
+        "todo": 1,
         "backlog": 5
       },
       "blocked": [],
@@ -96,11 +96,27 @@
         "updated_at": "2026-09-22"
       },
       {
+        "id": "binding-generator",
+        "title": "绑定生成器（Go AST → TypeScript）",
+        "type": "task",
+        "status": "done",
+        "path": "docs/tasks/binding-generator.md",
+        "updated_at": "2026-09-22"
+      },
+      {
         "id": "doc-index",
         "title": "Project index",
         "type": "doc",
         "status": "active",
         "path": "docs/index.md",
+        "updated_at": "2026-09-22"
+      },
+      {
+        "id": "binding-generator-impl",
+        "title": "绑定生成器实现路线（M1）",
+        "type": "decision",
+        "status": "accepted",
+        "path": "docs/decisions/binding-generator-impl.md",
         "updated_at": "2026-09-22"
       },
       {
@@ -142,27 +158,39 @@
         "status": "backlog",
         "path": "docs/tasks/m4-distribution.md",
         "updated_at": "2026-09-21"
-      },
-      {
-        "id": "m3-security",
-        "title": "M3 安全层（权限注解 / 依赖审计 / 沙箱）",
-        "type": "task",
-        "status": "backlog",
-        "path": "docs/tasks/m3-security.md",
-        "updated_at": "2026-09-21"
-      },
-      {
-        "id": "m2-diagnostics",
-        "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
-        "type": "task",
-        "status": "backlog",
-        "path": "docs/tasks/m2-diagnostics.md",
-        "updated_at": "2026-09-21"
       }
     ],
-    "generated_at": "2026-09-22T12:32:20.340Z"
+    "generated_at": "2026-09-22T12:49:43.023Z"
   },
   "documents": [
+    {
+      "id": "binding-generator-impl",
+      "title": "绑定生成器实现路线（M1）",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "m1",
+        "codegen",
+        "dx"
+      ],
+      "related": [
+        "binding-generator",
+        "dev-harness",
+        "error-envelope"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-22",
+      "updated_at": "2026-09-22",
+      "path": "docs/decisions/binding-generator-impl.md"
+    },
     {
       "id": "bridge-base64-response",
       "title": "桥接响应经 base64 传递",
@@ -580,7 +608,7 @@
       "id": "binding-generator",
       "title": "绑定生成器（Go AST → TypeScript）",
       "type": "task",
-      "status": "todo",
+      "status": "done",
       "owner": "ai",
       "priority": "high",
       "due": "",
@@ -600,7 +628,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-21",
+      "updated_at": "2026-09-22",
       "path": "docs/tasks/binding-generator.md"
     },
     {
