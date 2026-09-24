@@ -1,20 +1,30 @@
 {
-  "generated_at": "2026-09-22T13:44:37.018Z",
+  "generated_at": "2026-09-22T16:23:11.699Z",
   "summary": {
     "totals": {
-      "documents": 31,
-      "tasks": 9,
+      "documents": 34,
+      "tasks": 10,
       "risks": 4,
-      "decisions": 8,
+      "decisions": 10,
       "tests": 3
     },
     "tasks": {
       "by_status": {
         "done": 4,
-        "backlog": 5
+        "backlog": 5,
+        "in_progress": 1
       },
       "blocked": [],
-      "in_progress": [],
+      "in_progress": [
+        {
+          "id": "m2-diagnostics",
+          "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
+          "type": "task",
+          "status": "in_progress",
+          "path": "docs/tasks/m2-diagnostics.md",
+          "updated_at": "2026-09-23"
+        }
+      ],
       "overdue": []
     },
     "risks": {
@@ -63,6 +73,14 @@
     "stale": [],
     "recent": [
       {
+        "id": "m2-diagnostics",
+        "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
+        "type": "task",
+        "status": "in_progress",
+        "path": "docs/tasks/m2-diagnostics.md",
+        "updated_at": "2026-09-23"
+      },
+      {
         "id": "ipc-error-path",
         "title": "IPC 错误路径测试",
         "type": "test",
@@ -92,6 +110,14 @@
         "type": "task",
         "status": "done",
         "path": "docs/tasks/dev-harness.md",
+        "updated_at": "2026-09-22"
+      },
+      {
+        "id": "demo-apps",
+        "title": "生产价值示范性项目（agent-native dogfood）",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/demo-apps.md",
         "updated_at": "2026-09-22"
       },
       {
@@ -125,25 +151,9 @@
         "status": "active",
         "path": "docs/index.md",
         "updated_at": "2026-09-22"
-      },
-      {
-        "id": "dev-harness-impl",
-        "title": "Dev Harness 实现方案（M1：两进程 socket 转发）",
-        "type": "decision",
-        "status": "accepted",
-        "path": "docs/decisions/dev-harness-impl.md",
-        "updated_at": "2026-09-22"
-      },
-      {
-        "id": "binding-generator-impl",
-        "title": "绑定生成器实现路线（M1）",
-        "type": "decision",
-        "status": "accepted",
-        "path": "docs/decisions/binding-generator-impl.md",
-        "updated_at": "2026-09-22"
       }
     ],
-    "generated_at": "2026-09-22T13:44:37.018Z"
+    "generated_at": "2026-09-22T16:23:11.699Z"
   },
   "documents": [
     {
@@ -198,6 +208,35 @@
       "created_at": "2026-09-21",
       "updated_at": "2026-09-21",
       "path": "docs/decisions/bridge-base64-response.md"
+    },
+    {
+      "id": "cli-first",
+      "title": "CLI 优先：一切能力必须有机器可读的 CLI 入口",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "architecture",
+        "agent-first",
+        "cli"
+      ],
+      "related": [
+        "no-ai-runtime",
+        "frontend-stack",
+        "m2-diagnostics",
+        "demo-apps"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-22",
+      "updated_at": "2026-09-22",
+      "path": "docs/decisions/cli-first.md"
     },
     {
       "id": "dev-harness-impl",
@@ -274,6 +313,34 @@
       "created_at": "2026-09-21",
       "updated_at": "2026-09-21",
       "path": "docs/decisions/framework-naming.md"
+    },
+    {
+      "id": "frontend-stack",
+      "title": "UI 层复用 Web 生态，不自研 UI 框架",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "architecture",
+        "frontend",
+        "agent-first"
+      ],
+      "related": [
+        "system-webview",
+        "go-backend",
+        "binding-generator-impl"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-22",
+      "updated_at": "2026-09-22",
+      "path": "docs/decisions/frontend-stack.md"
     },
     {
       "id": "go-backend",
@@ -643,6 +710,33 @@
       "path": "docs/tasks/binding-generator.md"
     },
     {
+      "id": "demo-apps",
+      "title": "生产价值示范性项目（agent-native dogfood）",
+      "type": "task",
+      "status": "backlog",
+      "owner": "ai",
+      "priority": "medium",
+      "due": "",
+      "tags": [
+        "demo",
+        "frontend",
+        "agent-first"
+      ],
+      "related": [
+        "frontend-stack",
+        "m2-diagnostics"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-09-22",
+      "updated_at": "2026-09-22",
+      "path": "docs/tasks/demo-apps.md"
+    },
+    {
       "id": "dev-harness",
       "title": "Dev Harness 常驻外壳（后端热替换）",
       "type": "task",
@@ -700,7 +794,7 @@
       "id": "m2-diagnostics",
       "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
       "type": "task",
-      "status": "backlog",
+      "status": "in_progress",
       "owner": "ai",
       "priority": "high",
       "due": "",
@@ -710,7 +804,9 @@
       ],
       "related": [
         "error-envelope",
-        "binding-generator"
+        "binding-generator",
+        "cli-first",
+        "demo-apps"
       ],
       "project": "",
       "blocked_by": [],
@@ -719,7 +815,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-21",
+      "updated_at": "2026-09-23",
       "path": "docs/tasks/m2-diagnostics.md"
     },
     {

@@ -6,9 +6,11 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
+	"nib.dev/nib/events"
 	"nib.dev/nib/ipc"
 )
 
@@ -28,20 +30,26 @@ type fakeWindow struct {
 	delivered []*ipc.Message
 	closed    bool
 	runDone   chan struct{}
+	bus       *events.Bus
+	closeOnce sync.Once
 }
 
 func newFakeWindow() *fakeWindow {
-	return &fakeWindow{runDone: make(chan struct{})}
+	return &fakeWindow{runDone: make(chan struct{}), bus: events.NewBus(16)}
 }
 
 func (f *fakeWindow) SetForward(fn func(*ipc.Message)) { f.forward = fn }
+func (f *fakeWindow) Events() *events.Bus              { return f.bus }
 func (f *fakeWindow) DeliverResponse(m *ipc.Message)   { f.delivered = append(f.delivered, m) }
 func (f *fakeWindow) Navigate(t string) error          { f.navigated = append(f.navigated, t); return nil }
 func (f *fakeWindow) Eval(js string) error             { f.evals = append(f.evals, js); return nil }
 func (f *fakeWindow) SetTitle(t string)                { f.titles = append(f.titles, t) }
 func (f *fakeWindow) Resize(w, h int)                  { f.resized = append(f.resized, [2]int{w, h}) }
 func (f *fakeWindow) Run() error                       { <-f.runDone; return nil }
-func (f *fakeWindow) Close() error                     { f.closed = true; close(f.runDone); return nil }
+func (f *fakeWindow) Close() error {
+	f.closeOnce.Do(func() { f.closed = true; close(f.runDone) })
+	return nil
+}
 
 // startTestShell 在临时目录起 unix socket + Shell，返回 fake 窗口与清理函数。
 func startTestShell(t *testing.T) (*fakeWindow, *Shell, func()) {
@@ -87,11 +95,9 @@ func TestShellForwardsCallsToApp(t *testing.T) {
 	waitFor(t, func() bool { return len(win.navigated) == 1 })
 
 	// 前端调用 → shell 转发给业务进程。
+	// （shell 会穿插推送事件流 CtrlEvents，recvRequest 跳过它们。）
 	win.forward(&ipc.Message{ID: "m1", Dir: ipc.DirRequest, Call: "Svc.M", Args: marshalArgs(map[string]any{"x": 1})})
-	req, err := Recv(app)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req := recvRequest(t, app)
 	if req.Call != "Svc.M" || req.ID != "m1" {
 		t.Fatalf("转发消息不符: %+v", req)
 	}
@@ -148,7 +154,8 @@ func TestRemoteWindowEndToEnd(t *testing.T) {
 	defer ln.Close()
 
 	// 业务侧：remote 窗口注册绑定 + 起始页面，然后 Run 服务调用。
-	remote, err := DialRemote(sock)
+	appBus := events.NewBus(64)
+	remote, err := DialRemote(sock, appBus)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,6 +190,100 @@ func TestRemoteWindowEndToEnd(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Fatal("remote.Run 未返回")
 	}
+}
+
+// recvRequest 从业务进程连接读消息，跳过事件流推送（CtrlEvents），直到一条请求。
+// 用 Session 读：每条消息新建 Decoder 会丢弃其缓冲中的后续消息（M2 修过的坑）。
+func recvRequest(t *testing.T, c net.Conn) *ipc.Message {
+	t.Helper()
+	sess := NewSession(c)
+	for {
+		m, err := sess.Recv()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if m.Call != CtrlEvents {
+			return m
+		}
+	}
+}
+
+// TestShellStreamsAndReplaysEvents 验证事件流跨进程语义：
+// 上线前的事件重放、在线实时转发（保留原 Seq）、离线期间缓冲、重连补齐。
+func TestShellStreamsAndReplaysEvents(t *testing.T) {
+	sock := shortSock(t)
+	ln, err := net.Listen("unix", sock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	win := newFakeWindow()
+	sh := NewShell(win, ln)
+	go sh.Run()
+	defer ln.Close()
+
+	// 业务进程上线前的窗口事件（模拟 webview 创建）。
+	win.bus.Emit(events.WindowCreated, map[string]any{"title": "T"})
+
+	// 第一个业务进程上线：应收到重放 + app_connected。
+	bus1 := events.NewBus(64)
+	r1, err := DialRemote(sock, bus1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	go r1.Run()
+	waitFor(t, func() bool { return hasKind(bus1.Recent(), events.AppConnected) })
+	if !hasKind(bus1.Recent(), events.WindowCreated) {
+		t.Fatal("上线前事件未被重放")
+	}
+
+	// 在线实时转发，且保留 shell 侧原始 Seq。
+	wantSeq := win.bus.Emit(events.WindowNavigated, map[string]any{"target": "one"}).Seq
+	waitFor(t, func() bool {
+		for _, ev := range bus1.Recent() {
+			if ev.Kind == events.WindowNavigated && ev.Data["target"] == "one" {
+				return true
+			}
+		}
+		return false
+	})
+	for _, ev := range bus1.Recent() {
+		if ev.Kind == events.WindowNavigated && ev.Data["target"] == "one" && ev.Seq != wantSeq {
+			t.Fatalf("转发事件 Seq = %d, want %d（应保留原始 Seq）", ev.Seq, wantSeq)
+		}
+	}
+
+	// 业务进程下线；离线期间产生窗口事件。
+	if err := r1.Close(); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, func() bool { return hasKind(win.bus.Recent(), events.AppDisconnected) })
+	win.bus.Emit(events.WindowNavigated, map[string]any{"target": "offline"})
+
+	// 第二个业务进程上线：离线期间的事件应被补齐。
+	bus2 := events.NewBus(64)
+	r2, err := DialRemote(sock, bus2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r2.Close()
+	go r2.Run()
+	waitFor(t, func() bool {
+		for _, ev := range bus2.Recent() {
+			if ev.Kind == events.WindowNavigated && ev.Data["target"] == "offline" {
+				return true
+			}
+		}
+		return false
+	})
+}
+
+func hasKind(evs []events.Event, kind events.Kind) bool {
+	for _, ev := range evs {
+		if ev.Kind == kind {
+			return true
+		}
+	}
+	return false
 }
 
 func waitFor(t *testing.T, cond func() bool) {

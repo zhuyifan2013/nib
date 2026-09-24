@@ -2,8 +2,12 @@
 
 package core
 
-import "errors"
+import (
+	"errors"
 
-func newWindow(opts Options) (Window, error) {
+	"nib.dev/nib/events"
+)
+
+func newWindow(opts Options, bus *events.Bus) (Window, error) {
 	return nil, errors.New("nib: linux (WebKitGTK) support not implemented yet")
 }

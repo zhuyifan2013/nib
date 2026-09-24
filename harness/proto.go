@@ -14,6 +14,7 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync"
 
 	"nib.dev/nib/ipc"
 )
@@ -28,6 +29,7 @@ const (
 	CtrlResize      = ctrlPrefix + "resize"     // 参数：{width, height}
 	CtrlEval        = ctrlPrefix + "eval"       // 参数："js"
 	CtrlClose       = ctrlPrefix + "close"      // 参数：null
+	CtrlEvents      = ctrlPrefix + "events"     // shell → 业务进程：事件批量/流式转发，参数：[events.Event]
 	errAppDown      = "harness/app_unavailable" // 业务进程不在线时的结构化错误码
 	errBadTransport = "harness/transport"       // 传输层错误码
 )
@@ -35,7 +37,7 @@ const (
 // IsCtrl 判断 Call 是否是控制调用。
 func IsCtrl(call string) bool { return strings.HasPrefix(call, ctrlPrefix) }
 
-// Send 写一条消息（换行分隔 JSON）。
+// Send 写一条消息（换行分隔 JSON）。写操作无状态，可安全用于任意连接。
 func Send(c net.Conn, m *ipc.Message) error {
 	b, err := ipc.Marshal(m)
 	if err != nil {
@@ -45,20 +47,43 @@ func Send(c net.Conn, m *ipc.Message) error {
 	return err
 }
 
+// Session 是一条连接上的消息读写会话。
+// json.Decoder 常驻并自带缓冲：连续多条消息同抵达时不会丢数据——
+// 反例：每条消息新建 Decoder，会把已读进缓冲的后续消息随 Decoder 一起丢弃。
+type Session struct {
+	c   net.Conn
+	dec *json.Decoder
+	wmu sync.Mutex // Send 可并发（事件泵 + 转发），写需串行
+}
+
+// NewSession 创建会话。
+func NewSession(c net.Conn) *Session {
+	return &Session{c: c, dec: json.NewDecoder(c)}
+}
+
+// Conn 返回底层连接。
+func (s *Session) Conn() net.Conn { return s.c }
+
+// Send 写一条消息（并发安全）。
+func (s *Session) Send(m *ipc.Message) error {
+	s.wmu.Lock()
+	defer s.wmu.Unlock()
+	return Send(s.c, m)
+}
+
 // Recv 读一条消息；连接关闭返回 io.EOF。
-func Recv(c net.Conn) (*ipc.Message, error) {
-	dec := json.NewDecoder(c)
+func (s *Session) Recv() (*ipc.Message, error) {
 	var m ipc.Message
-	if err := dec.Decode(&m); err != nil {
+	if err := s.dec.Decode(&m); err != nil {
 		return nil, err
 	}
 	return &m, nil
 }
 
-// serveConn 持续从 conn 读消息并交给 handler，直到连接关闭。
-func serveConn(c net.Conn, handler func(*ipc.Message)) error {
+// serveConn 持续从会话读消息并交给 handler，直到连接关闭。
+func serveConn(s *Session, handler func(*ipc.Message)) error {
 	for {
-		m, err := Recv(c)
+		m, err := s.Recv()
 		if err != nil {
 			if err == io.EOF {
 				return nil

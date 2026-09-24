@@ -19,6 +19,7 @@ type DevOptions struct {
 	StateDir string        // 状态目录（socket、构建产物）；默认 <WorkDir>/.nib
 	Interval time.Duration // 文件轮询间隔；默认 250ms
 	NoWatch  bool          // 只构建运行一次，不监听改动
+	Events   string        // 事件流 NDJSON 导出路径（"-" 为 stdout；空 = 不导出）
 }
 
 // Dev 运行开发常驻外壳：构建业务二进制，拉起 shell（常驻窗口）与业务进程，
@@ -59,7 +60,11 @@ func Dev(opts DevOptions) error {
 	}
 
 	// 2. 拉起常驻 shell（窗口永不退出的那一层）。
-	shell := exec.Command(self, "shell", "--sock", sockPath)
+	shellArgs := []string{"shell", "--sock", sockPath}
+	if opts.Events != "" {
+		shellArgs = append(shellArgs, "--events", opts.Events)
+	}
+	shell := exec.Command(self, shellArgs...)
 	shell.Dir = opts.WorkDir
 	shell.Stdout = os.Stdout
 	shell.Stderr = os.Stderr
@@ -158,14 +163,14 @@ func stopApp(cmd *exec.Cmd) {
 	}
 }
 
-// RunShell 是 `nib shell --sock <path>` 的实现：创建常驻窗口并服务业务进程。
+// RunShell 是 `nib shell --sock <path> [--events <path|->]` 的实现：创建常驻窗口并服务业务进程。
 // 由 Dev 经子进程拉起，业务用户不需要直接调用。
-func RunShell(sockPath string) error {
+func RunShell(sockPath, eventsPath string) error {
 	os.Remove(sockPath)
 	ln, err := net.Listen("unix", sockPath)
 	if err != nil {
 		return fmt.Errorf("监听 %s: %w", sockPath, err)
 	}
 	defer os.Remove(sockPath)
-	return serveShell(ln)
+	return serveShell(ln, eventsPath)
 }

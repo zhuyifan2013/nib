@@ -17,8 +17,10 @@ func main() {
 	dev := flag.NewFlagSet("dev", flag.ExitOnError)
 	noWatch := dev.Bool("nowatch", false, "不监听文件改动（只构建运行一次）")
 	interval := dev.Duration("interval", 250*time.Millisecond, "文件轮询间隔")
+	devEvents := dev.String("events", "", "事件流 NDJSON 导出路径（\"-\" 为 stdout）")
 	shell := flag.NewFlagSet("shell", flag.ExitOnError)
 	sock := shell.String("sock", "", "unix socket 路径")
+	shellEvents := shell.String("events", "", "事件流 NDJSON 导出路径（\"-\" 为 stdout）")
 
 	if len(os.Args) < 2 {
 		usage()
@@ -36,6 +38,7 @@ func main() {
 			Pkg:      pkg,
 			NoWatch:  *noWatch,
 			Interval: *interval,
+			Events:   *devEvents,
 		})
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "nib dev: "+err.Error())
@@ -49,7 +52,7 @@ func main() {
 			usage()
 			os.Exit(2)
 		}
-		if err := harness.RunShell(*sock); err != nil {
+		if err := harness.RunShell(*sock, *shellEvents); err != nil {
 			fmt.Fprintln(os.Stderr, "nib shell: "+err.Error())
 			os.Exit(1)
 		}
@@ -61,7 +64,8 @@ func main() {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, `usage:
-  nib dev [-nowatch] [-interval 250ms] <pkg>   开发常驻外壳（改业务代码即热替换）
+  nib dev [-nowatch] [-interval 250ms] [-events <path|->] <pkg>
+                                               开发常驻外壳（改业务代码即热替换）
   nib probe --sock <path>                      模拟业务进程（调试 shell/桥接）
-  nib shell --sock <path>                      内部：常驻窗口层（dev 自动拉起）`)
+  nib shell --sock <path> [-events <path|->]  内部：常驻窗口层（dev 自动拉起）`)
 }

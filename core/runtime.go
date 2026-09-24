@@ -3,6 +3,8 @@
 package core
 
 import (
+	"nib.dev/nib/events"
+
 	"os"
 
 	"nib.dev/nib/harness"
@@ -47,6 +49,7 @@ type Window interface {
 type Runtime struct {
 	opts     Options
 	bindings map[string]Handler
+	eventBus *events.Bus // M2 事件流；本地模式窗口事件汇入此总线，harness 模式下由 shell 转发汇入
 }
 
 func New(opts Options) *Runtime {
@@ -56,15 +59,20 @@ func New(opts Options) *Runtime {
 	if opts.Height == 0 {
 		opts.Height = 768
 	}
-	return &Runtime{opts: opts, bindings: map[string]Handler{}}
+	return &Runtime{opts: opts, bindings: map[string]Handler{}, eventBus: events.NewBus(0)}
 }
+
+// Events 返回运行时事件总线（窗口/IPC/harness 生命周期事件）。
+// 订阅它即可实现结构化观察；harness 模式下业务进程经此拿到 shell 转发的完整流。
+func (r *Runtime) Events() *events.Bus { return r.eventBus }
 
 // openWindow 选择窗口实现：dev harness 远程窗口或平台原生窗口。
 func (r *Runtime) openWindow() (Window, error) {
 	if sock := os.Getenv("NIB_SOCK"); sock != "" {
-		return harness.DialRemote(sock)
+		// harness 模式：事件由 shell 侧产生，经 ctrl 消息转发汇入本总线。
+		return harness.DialRemote(sock, r.eventBus)
 	}
-	return newWindow(r.opts) // 由平台文件（runtime_$(GOOS).go）提供
+	return newWindow(r.opts, r.eventBus) // 由平台文件（runtime_$(GOOS).go）提供
 }
 
 // Bind 注册一个可被前端通过 window.nib.invoke("Service.Method", args) 调用的方法。

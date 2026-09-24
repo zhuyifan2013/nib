@@ -30,7 +30,7 @@ func probe(args []string) {
 		os.Exit(2)
 	}
 
-	win, err := harness.DialRemote(*sock)
+	win, err := harness.DialRemote(*sock, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
