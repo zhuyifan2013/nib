@@ -13,6 +13,7 @@ func newWindow(opts Options, bus *events.Bus) (Window, error) {
 		Width:    opts.Width,
 		Height:   opts.Height,
 		DevTools: opts.DevTools,
+		Headless: opts.Headless,
 		Events:   bus,
 	}), nil
 }

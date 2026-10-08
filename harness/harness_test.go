@@ -2,10 +2,13 @@ package harness
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net"
+	"nib.dev/nib/driver"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -22,6 +25,7 @@ func shortSock(t *testing.T) string {
 
 // fakeWindow 记录 shell 对窗口的全部操作。
 type fakeWindow struct {
+	mu        sync.Mutex
 	forward   func(*ipc.Message)
 	navigated []string
 	titles    []string
@@ -40,15 +44,43 @@ func newFakeWindow() *fakeWindow {
 
 func (f *fakeWindow) SetForward(fn func(*ipc.Message)) { f.forward = fn }
 func (f *fakeWindow) Events() *events.Bus              { return f.bus }
-func (f *fakeWindow) DeliverResponse(m *ipc.Message)   { f.delivered = append(f.delivered, m) }
-func (f *fakeWindow) Navigate(t string) error          { f.navigated = append(f.navigated, t); return nil }
-func (f *fakeWindow) Eval(js string) error             { f.evals = append(f.evals, js); return nil }
-func (f *fakeWindow) SetTitle(t string)                { f.titles = append(f.titles, t) }
-func (f *fakeWindow) Resize(w, h int)                  { f.resized = append(f.resized, [2]int{w, h}) }
-func (f *fakeWindow) Run() error                       { <-f.runDone; return nil }
-func (f *fakeWindow) Close() error {
-	f.closeOnce.Do(func() { f.closed = true; close(f.runDone) })
+func (f *fakeWindow) DeliverResponse(m *ipc.Message) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.delivered = append(f.delivered, m)
+}
+func (f *fakeWindow) Navigate(t string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.navigated = append(f.navigated, t)
 	return nil
+}
+func (f *fakeWindow) Eval(js string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.evals = append(f.evals, js)
+	return nil
+}
+func (f *fakeWindow) SetTitle(t string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.titles = append(f.titles, t)
+}
+func (f *fakeWindow) Resize(w, h int) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.resized = append(f.resized, [2]int{w, h})
+}
+func (f *fakeWindow) Run() error { <-f.runDone; return nil }
+func (f *fakeWindow) Close() error {
+	f.closeOnce.Do(func() { f.mu.Lock(); f.closed = true; f.mu.Unlock(); close(f.runDone) })
+	return nil
+}
+
+func (f *fakeWindow) snapshot() fakeWindow {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return fakeWindow{navigated: append([]string(nil), f.navigated...), titles: append([]string(nil), f.titles...), evals: append([]string(nil), f.evals...), resized: append([][2]int(nil), f.resized...), delivered: append([]*ipc.Message(nil), f.delivered...), closed: f.closed}
 }
 
 // startTestShell 在临时目录起 unix socket + Shell，返回 fake 窗口与清理函数。
@@ -62,7 +94,7 @@ func startTestShell(t *testing.T) (*fakeWindow, *Shell, func()) {
 	win := newFakeWindow()
 	sh := NewShell(win, ln)
 	go sh.Run()
-	return win, sh, func() { ln.Close() }
+	return win, sh, func() { sh.Close() }
 }
 
 // dialApp 模拟业务进程：连上 shell 并完成 init 握手。
@@ -88,11 +120,11 @@ func TestShellForwardsCallsToApp(t *testing.T) {
 	win := newFakeWindow()
 	sh := NewShell(win, ln)
 	go sh.Run()
-	defer ln.Close()
+	defer sh.Close()
 
 	app := dialApp(t, sock, "<html>demo</html>", "Svc.M")
 	defer app.Close()
-	waitFor(t, func() bool { return len(win.navigated) == 1 })
+	waitFor(t, func() bool { return len(win.snapshot().navigated) == 1 })
 
 	// 前端调用 → shell 转发给业务进程。
 	// （shell 会穿插推送事件流 CtrlEvents，recvRequest 跳过它们。）
@@ -106,8 +138,8 @@ func TestShellForwardsCallsToApp(t *testing.T) {
 	if err := Send(app, &ipc.Message{ID: "m1", Dir: ipc.DirResponse, Result: marshalArgs("hi")}); err != nil {
 		t.Fatal(err)
 	}
-	waitFor(t, func() bool { return len(win.delivered) == 1 })
-	if got := string(win.delivered[0].Result); got != `"hi"` {
+	waitFor(t, func() bool { return len(win.snapshot().delivered) == 1 })
+	if got := string(win.snapshot().delivered[0].Result); got != `"hi"` {
 		t.Fatalf("响应结果 = %s", got)
 	}
 }
@@ -117,8 +149,8 @@ func TestShellAppOfflineGivesRetryableError(t *testing.T) {
 	defer cleanup()
 
 	win.forward(&ipc.Message{ID: "m1", Dir: ipc.DirRequest, Call: "Svc.M"})
-	waitFor(t, func() bool { return len(win.delivered) == 1 })
-	e := win.delivered[0].Error
+	waitFor(t, func() bool { return len(win.snapshot().delivered) == 1 })
+	e := win.snapshot().delivered[0].Error
 	if e == nil || e.Code != errAppDown || !e.Retryable {
 		t.Fatalf("应返回可重试的 %s，实际 %+v", errAppDown, e)
 	}
@@ -135,10 +167,10 @@ func TestShellCtrlMessages(t *testing.T) {
 	}{800, 600})})
 	win.forward(&ipc.Message{ID: "c3", Dir: ipc.DirRequest, Call: CtrlEval, Args: marshalArgs("1+1")})
 	waitFor(t, func() bool {
-		return len(win.titles) == 1 && len(win.resized) == 1 && len(win.evals) == 1
+		return len(win.snapshot().titles) == 1 && len(win.snapshot().resized) == 1 && len(win.snapshot().evals) == 1
 	})
-	if win.titles[0] != "你好" || win.resized[0] != [2]int{800, 600} || win.evals[0] != "1+1" {
-		t.Fatalf("控制消息未生效: %+v %+v %+v", win.titles, win.resized, win.evals)
+	if win.snapshot().titles[0] != "你好" || win.snapshot().resized[0] != [2]int{800, 600} || win.snapshot().evals[0] != "1+1" {
+		t.Fatalf("控制消息未生效: %+v %+v %+v", win.snapshot().titles, win.snapshot().resized, win.snapshot().evals)
 	}
 }
 
@@ -151,7 +183,7 @@ func TestRemoteWindowEndToEnd(t *testing.T) {
 	win := newFakeWindow()
 	sh := NewShell(win, ln)
 	go sh.Run()
-	defer ln.Close()
+	defer sh.Close()
 
 	// 业务侧：remote 窗口注册绑定 + 起始页面，然后 Run 服务调用。
 	appBus := events.NewBus(64)
@@ -171,12 +203,14 @@ func TestRemoteWindowEndToEnd(t *testing.T) {
 	go func() { runErr <- remote.Run() }()
 
 	// shell 应完成 init：导航到起始页面。
-	waitFor(t, func() bool { return len(win.navigated) == 1 && win.navigated[0] == "<html>page</html>" })
+	waitFor(t, func() bool {
+		return len(win.snapshot().navigated) == 1 && win.snapshot().navigated[0] == "<html>page</html>"
+	})
 
 	// 前端调用 → remote handler → 响应回前端。
 	win.forward(&ipc.Message{ID: "m9", Dir: ipc.DirRequest, Call: "Svc.Greet"})
-	waitFor(t, func() bool { return len(win.delivered) == 1 })
-	if got := string(win.delivered[0].Result); got != `"hello"` {
+	waitFor(t, func() bool { return len(win.snapshot().delivered) == 1 })
+	if got := string(win.snapshot().delivered[0].Result); got != `"hello"` {
 		t.Fatalf("结果 = %s", got)
 	}
 
@@ -184,7 +218,7 @@ func TestRemoteWindowEndToEnd(t *testing.T) {
 	if err := remote.Close(); err != nil {
 		t.Fatal(err)
 	}
-	waitFor(t, func() bool { return win.closed })
+	waitFor(t, func() bool { return win.snapshot().closed })
 	select {
 	case <-runErr:
 	case <-time.After(2 * time.Second):
@@ -219,7 +253,7 @@ func TestShellStreamsAndReplaysEvents(t *testing.T) {
 	win := newFakeWindow()
 	sh := NewShell(win, ln)
 	go sh.Run()
-	defer ln.Close()
+	defer sh.Close()
 
 	// 业务进程上线前的窗口事件（模拟 webview 创建）。
 	win.bus.Emit(events.WindowCreated, map[string]any{"title": "T"})
@@ -296,4 +330,63 @@ func waitFor(t *testing.T, cond func() bool) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatal("等待超时")
+}
+
+func TestShellSocketReadiness(t *testing.T) {
+	path := shortSock(t)
+	exited := make(chan error, 1)
+	exited <- fmt.Errorf("startup failed")
+	if err := waitShellSocket(path, exited, time.Second); err == nil {
+		t.Fatal("accepted exited shell")
+	}
+	if err := waitShellSocket(path, make(chan error), 5*time.Millisecond); err == nil {
+		t.Fatal("did not time out")
+	}
+	ln, err := net.Listen("unix", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	if err := waitShellSocket(path, make(chan error), time.Second); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDevDriverTimeoutPropagation(t *testing.T) {
+	for _, timeout := range []time.Duration{0, 1500 * time.Millisecond, 30 * time.Second} {
+		opts := DevOptions{Headless: true, Events: "events.ndjson", Driver: driver.Options{Port: 8123, Timeout: timeout, Token: "private-test-token"}}
+		args, err := devShellArgs("test.sock", opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fs := flag.NewFlagSet("shell", flag.ContinueOnError)
+		port := fs.Int("driver-port", 0, "")
+		gotTimeout := fs.Duration("driver-timeout", 0, "")
+		headless := fs.Bool("headless", false, "")
+		sock := fs.String("sock", "", "")
+		events := fs.String("events", "", "")
+		if err := fs.Parse(args[1:]); err != nil {
+			t.Fatal(err)
+		}
+		if *port != opts.Driver.Port || *gotTimeout != timeout || !*headless || *sock != "test.sock" || *events != opts.Events {
+			t.Fatalf("options lost: %v", args)
+		}
+		if strings.Contains(strings.Join(args, " "), opts.Driver.Token) {
+			t.Fatal("token leaked into argv")
+		}
+	}
+}
+func TestInvalidDriverTimeoutRejectedBeforeStartup(t *testing.T) {
+	for _, timeout := range []time.Duration{-time.Nanosecond, 30*time.Second + time.Nanosecond} {
+		opts := DevOptions{Pkg: "nonexistent-package", Driver: driver.Options{Port: 8123, Timeout: timeout}}
+		if _, err := devShellArgs("test.sock", opts); err == nil {
+			t.Fatal("invalid timeout forwarded")
+		}
+		if err := Dev(opts); err == nil || !strings.Contains(err.Error(), "driver timeout") {
+			t.Fatalf("did not reject before build: %v", err)
+		}
+		if err := RunShellWithOptions("", "", ShellOptions{Driver: opts.Driver}); err == nil || !strings.Contains(err.Error(), "driver timeout") {
+			t.Fatalf("did not reject before socket creation: %v", err)
+		}
+	}
 }

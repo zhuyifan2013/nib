@@ -7,7 +7,7 @@ kind: e2e
 tags: [m2, observability]
 related: [m2-diagnostics, cli-first]
 created_at: 2026-09-24
-updated_at: 2026-09-24
+updated_at: 2026-10-08
 ---
 
 # 事件流（M2 增量 1）测试
@@ -38,6 +38,11 @@ passing。实测导出（加载 apple.com 并触发一次桥调用）：
 过程中修复一个 M1 潜伏缺陷：`Recv` 每条消息新建 `json.Decoder`，多条消息同抵达时
 缓冲数据随 Decoder 丢弃（表现：事件推送后转发的请求永久丢失）。修复为连接级
 `Session`（Decoder 常驻 + 写锁），shell/remote/serveConn 全部会话化。
+
+## 进度复核（2026-10-08，macOS）
+
+`go test ./...` 通过：binding、events、harness 测试均通过（binding/events 使用缓存）。
+本次未重跑 GUI 端到端验证；上述 NDJSON 端到端结论仍来自 2026-09-24 的记录。
 
 ## 已知边界（增量 2+ 处理）
 

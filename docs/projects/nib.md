@@ -7,7 +7,7 @@ health: green
 owner: ai
 tags: [desktop, framework, go, webview]
 created_at: 2026-09-21
-updated_at: 2026-09-21
+updated_at: 2026-10-08
 ---
 
 # Nib — AI 时代跨平台桌面框架
@@ -20,7 +20,11 @@ AI 单次迭代时间 **T_iter < 5s** = 编译(<1.5s) + 启动(dev≈0) + 观察
 
 ## 当前焦点
 
-M1 最小运行时：macOS 链路已验证（见 test: `demo-e2e-manual`），剩余任务见 `tasks/`。
+M1 macOS 运行时、绑定生成器与开发外壳已验证；M2 事件流增量已完成，
+下一步为无头驱动。Windows/Linux 仍待实现。
+
+正式发布目标：交付开发者与 agent 均可完成创建、开发、验证、构建、发行、更新闭环的
+完整桌面框架。发布工作包、依赖顺序和验收见 `release-v1`。
 
 ## 实测基线（2026-09-21, macOS arm64）
 

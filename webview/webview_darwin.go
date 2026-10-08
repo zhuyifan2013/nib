@@ -8,7 +8,8 @@ package webview
 #include <stdlib.h>
 
 // 由 webview_darwin.m 实现
-extern void* nibWindowCreate(const char* title, int width, int height, int devtools);
+extern void* nibWindowCreate(const char* title, int width, int height, int devtools, int hidden);
+extern void nibWindowScreenshot(void* w, unsigned long long id);
 extern void  nibWindowSetGoHandle(void* w, void* handle);
 extern void  nibWindowNavigate(void* w, const char* target);
 extern void  nibWindowEval(void* w, const char* js);
@@ -20,12 +21,16 @@ extern void  nibWindowClose(void* w);
 import "C"
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"runtime"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
+	"time"
 	"unsafe"
 
 	"nib.dev/nib/events"
@@ -42,7 +47,10 @@ type Window struct {
 	token    unsafe.Pointer         // C.malloc(1) 分配的注册表键
 	handlers sync.Map               // name -> ipc.Handler
 	forward  func(msg *ipc.Message) // 非空时 dispatch 整体转发（harness shell 用）
-	events   *events.Bus            // 事件流（M2 诊断层）；构造时 Events() 可拿
+	pending  sync.Map
+	seq      atomic.Uint64
+	closed   atomic.Bool
+	events   *events.Bus // 事件流（M2 诊断层）；构造时 Events() 可拿
 }
 
 func New(opts Options) *Window {
@@ -50,7 +58,7 @@ func New(opts Options) *Window {
 	runtime.LockOSThread()
 	title := C.CString(opts.Title)
 	defer C.free(unsafe.Pointer(title))
-	h := C.nibWindowCreate(title, C.int(opts.Width), C.int(opts.Height), cbool(opts.DevTools))
+	h := C.nibWindowCreate(title, C.int(opts.Width), C.int(opts.Height), cbool(opts.DevTools), cbool(opts.Headless))
 	w := &Window{handle: h, token: C.malloc(1)}
 	registry.Store(w.token, w)
 	C.nibWindowSetGoHandle(h, w.token)
@@ -219,11 +227,133 @@ func (w *Window) Resize(width, height int) {
 
 func (w *Window) Run() error {
 	C.nibWindowRun(w.handle)
+	w.finishClose()
+	registry.Delete(w.token)
 	return nil
 }
 
-func (w *Window) Close() error {
+func (w *Window) finishClose() {
+	if !w.closed.CompareAndSwap(false, true) {
+		return
+	}
+	w.pending.Range(func(k, v any) bool {
+		if ch, ok := w.pending.LoadAndDelete(k); ok {
+			ch.(chan nativeResult) <- nativeResult{err: errors.New("window closed")}
+		}
+		return true
+	})
 	w.events.Emit(events.WindowClosed, nil)
-	C.nibWindowClose(w.handle)
+}
+func (w *Window) Close() error {
+	if !w.closed.Load() {
+		w.finishClose()
+		C.nibWindowClose(w.handle)
+	}
 	return nil
+}
+
+// EvalResult evaluates an expression and awaits Promise results. Values must be JSON serializable.
+func (w *Window) EvalResult(ctx context.Context, js string) (json.RawMessage, error) {
+	if w.closed.Load() {
+		return nil, errors.New("window closed")
+	}
+	id := w.seq.Add(1)
+	ch := make(chan nativeResult, 1)
+	w.pending.Store(id, ch)
+	defer w.pending.Delete(id)
+	if w.closed.Load() {
+		return nil, errors.New("window closed")
+	}
+	// A JS timer prevents unresolved evaluation closures from persisting indefinitely.
+	ms := int64(5000)
+	if deadline, ok := ctx.Deadline(); ok {
+		ms = time.Until(deadline).Milliseconds()
+		if ms < 1 {
+			return nil, context.DeadlineExceeded
+		}
+	}
+	script := fmt.Sprintf(`(()=>{const id=%d;let done=false;const send=(value,error)=>{if(done)return;let body=JSON.stringify({id:id,result:value===undefined?null:value,error:error});if(body.length>4194304)body=JSON.stringify({id:id,result:null,error:"result exceeds 4 MiB"});done=true;clearTimeout(timer);window.webkit.messageHandlers.nibDriver.postMessage(body);};const timer=setTimeout(()=>{send(null,'operation timed out')},%d);Promise.resolve().then(()=>(0,eval)(%s)).then(value=>{try{send(value,null)}catch(e){send(null,String(e))}},e=>{let text;try{text=e instanceof Error?e.message:JSON.stringify(e)}catch(_){text=String(e)}send(null,text||String(e))});})()`, id, ms, quoteJS(js))
+	if err := w.Eval(script); err != nil {
+		return nil, err
+	}
+	select {
+	case r := <-ch:
+		return r.data, r.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+func quoteJS(s string) string { b, _ := json.Marshal(s); return string(b) }
+
+type nativeResult struct {
+	data []byte
+	err  error
+}
+
+//export nibDriverMessage
+func nibDriverMessage(token unsafe.Pointer, body *C.char) {
+	defer C.free(unsafe.Pointer(body))
+	v, ok := registry.Load(token)
+	if !ok {
+		return
+	}
+	w := v.(*Window)
+	var m struct {
+		ID     uint64          `json:"id"`
+		Result json.RawMessage `json:"result"`
+		Error  *string         `json:"error"`
+	}
+	if json.Unmarshal([]byte(C.GoString(body)), &m) != nil {
+		return
+	}
+	var err error
+	if m.Error != nil {
+		if *m.Error == "operation timed out" {
+			err = context.DeadlineExceeded
+		} else {
+			err = errors.New(*m.Error)
+		}
+	}
+	if ch, ok := w.pending.LoadAndDelete(m.ID); ok {
+		ch.(chan nativeResult) <- nativeResult{m.Result, err}
+	}
+}
+
+//export nibScreenshotResult
+func nibScreenshotResult(token unsafe.Pointer, id C.ulonglong, data unsafe.Pointer, size C.int, errText *C.char) {
+	v, ok := registry.Load(token)
+	if !ok {
+		return
+	}
+	w := v.(*Window)
+	var err error
+	if errText != nil {
+		err = errors.New(C.GoString(errText))
+	}
+	if size > 32<<20 {
+		size = 0
+		err = errors.New("snapshot exceeds 32 MiB")
+	}
+	if ch, ok := w.pending.LoadAndDelete(uint64(id)); ok {
+		ch.(chan nativeResult) <- nativeResult{C.GoBytes(data, size), err}
+	}
+}
+func (w *Window) Screenshot(ctx context.Context) ([]byte, error) {
+	if w.closed.Load() {
+		return nil, errors.New("window closed")
+	}
+	id := w.seq.Add(1)
+	ch := make(chan nativeResult, 1)
+	w.pending.Store(id, ch)
+	defer w.pending.Delete(id)
+	if w.closed.Load() {
+		return nil, errors.New("window closed")
+	}
+	C.nibWindowScreenshot(w.handle, C.ulonglong(id))
+	select {
+	case r := <-ch:
+		return r.data, r.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }

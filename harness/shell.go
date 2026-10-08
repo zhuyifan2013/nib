@@ -222,5 +222,12 @@ func (s *Shell) handleCtrl(m *ipc.Message) {
 func (s *Shell) Close() error {
 	s.eventSub.Unsubscribe()
 	s.ln.Close()
+	s.mu.Lock()
+	if s.app != nil {
+		s.app.Conn().Close()
+		s.app = nil
+		s.online = false
+	}
+	s.mu.Unlock()
 	return s.win.Close()
 }

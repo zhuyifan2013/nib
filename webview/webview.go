@@ -10,6 +10,7 @@ type Options struct {
 	Width    int
 	Height   int
 	DevTools bool
+	Headless bool // Hide the window; a macOS GUI session is still required.
 
 	// Events 是窗口事件的总线；nil 时内部自建（Window.Events() 始终可用）。
 	// core 传入自己的总线，使窗口事件与运行时事件同属一条流。

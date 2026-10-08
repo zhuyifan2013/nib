@@ -9,25 +9,37 @@ import (
 	"net"
 	"os"
 
+	"nib.dev/nib/driver"
 	"nib.dev/nib/webview"
 )
 
 // serveShell 创建常驻窗口（DevTools 开，尺寸默认 1024x768）并进入事件循环。
 // eventsPath 非空时把窗口事件流以 NDJSON 导出："-" 为 stdout，否则为文件路径（追加）。
-func serveShell(ln net.Listener, eventsPath string) error {
+func serveShell(ln net.Listener, eventsPath string, opts ShellOptions) error {
 	title := os.Getenv("NIB_TITLE")
 	if title == "" {
 		title = "Nib Dev"
 	}
-	win := webview.New(webview.Options{Title: title, Width: 1024, Height: 768, DevTools: true})
-	if eventsPath != "" {
-		exportEvents(win, eventsPath)
+	win := webview.New(webview.Options{Title: title, Width: 1024, Height: 768, DevTools: true, Headless: opts.Headless})
+	defer win.Close()
+	if opts.Driver.Port != 0 {
+		server, err := driver.Start(win, opts.Driver)
+		if err != nil {
+			return err
+		}
+		defer server.Close()
+		log.Printf("nib driver: http://%s (Bearer authentication required)", server.Addr())
 	}
-	return NewShell(win, ln).Run()
+	if eventsPath != "" {
+		defer exportEvents(win, eventsPath)()
+	}
+	shell := NewShell(win, ln)
+	defer shell.Close()
+	return shell.Run()
 }
 
 // exportEvents 订阅窗口事件总线并写 NDJSON（一行一条事件）。
-func exportEvents(win *webview.Window, path string) {
+func exportEvents(win *webview.Window, path string) func() {
 	var w io.Writer
 	var f *os.File
 	if path == "-" {
@@ -37,7 +49,7 @@ func exportEvents(win *webview.Window, path string) {
 		f, err = os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 		if err != nil {
 			log.Printf("harness: 事件导出 %s 打开失败: %v", path, err)
-			return
+			return func() {}
 		}
 		w = f
 	}
@@ -54,4 +66,5 @@ func exportEvents(win *webview.Window, path string) {
 			}
 		}
 	}()
+	return sub.Unsubscribe
 }

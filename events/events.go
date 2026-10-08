@@ -70,18 +70,14 @@ func (b *Bus) Emit(kind Kind, data map[string]any) Event {
 		b.pos = 0
 		b.full = true
 	}
-	subs := make([]chan Event, 0, len(b.subs))
+	// Keep the lock during nonblocking delivery so Unsubscribe cannot close a channel concurrently.
 	for _, ch := range b.subs {
-		subs = append(subs, ch)
-	}
-	b.mu.Unlock()
-
-	for _, ch := range subs {
 		select {
 		case ch <- ev:
 		default:
 		}
 	}
+	b.mu.Unlock()
 	return ev
 }
 
@@ -151,7 +147,7 @@ func (s *Subscription) Unsubscribe() {
 	s.once.Do(func() {
 		s.bus.mu.Lock()
 		delete(s.bus.subs, s.id)
-		s.bus.mu.Unlock()
 		close(s.ch)
+		s.bus.mu.Unlock()
 	})
 }

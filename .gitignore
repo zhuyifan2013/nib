@@ -1,2 +1,4 @@
 .nib/
 bin/
+__pycache__/
+*.py[cod]

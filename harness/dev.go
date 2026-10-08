@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"nib.dev/nib/driver"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -14,6 +15,8 @@ import (
 
 // DevOptions 是 Dev 编排器的参数。
 type DevOptions struct {
+	Headless bool
+	Driver   driver.Options
 	Pkg      string        // 业务包路径（go build 的参数形态，如 ./cmd/demo）
 	WorkDir  string        // 构建与业务进程的工作目录
 	StateDir string        // 状态目录（socket、构建产物）；默认 <WorkDir>/.nib
@@ -26,6 +29,9 @@ type DevOptions struct {
 // 监听 Go 源改动并热替换业务进程（窗口不退出、不闪烁，前端状态保留）。
 // 阻塞至收到 SIGINT/SIGTERM 或窗口关闭。
 func Dev(opts DevOptions) error {
+	if err := driver.ValidateTimeout(opts.Driver.Timeout); err != nil {
+		return err
+	}
 	if opts.Pkg == "" {
 		return fmt.Errorf("缺少业务包路径（如 ./cmd/demo）")
 	}
@@ -60,23 +66,36 @@ func Dev(opts DevOptions) error {
 	}
 
 	// 2. 拉起常驻 shell（窗口永不退出的那一层）。
-	shellArgs := []string{"shell", "--sock", sockPath}
-	if opts.Events != "" {
-		shellArgs = append(shellArgs, "--events", opts.Events)
+	shellArgs, err := devShellArgs(sockPath, opts)
+	if err != nil {
+		return err
 	}
 	shell := exec.Command(self, shellArgs...)
 	shell.Dir = opts.WorkDir
 	shell.Stdout = os.Stdout
 	shell.Stderr = os.Stderr
 	shell.Env = os.Environ()
+	if opts.Driver.Token != "" {
+		shell.Env = append(shell.Env, "NIB_DRIVER_TOKEN="+opts.Driver.Token)
+	}
 	if err := shell.Start(); err != nil {
 		return fmt.Errorf("启动 shell: %w", err)
+	}
+
+	shellDone := make(chan error, 1)
+	go func() { shellDone <- shell.Wait() }()
+
+	// Wait for the resident listener before the app attempts its first DialRemote.
+	if err := waitShellSocket(sockPath, shellDone, 5*time.Second); err != nil {
+		shell.Process.Kill()
+		return err
 	}
 
 	// 3. 拉起业务进程（可替换层）。
 	app, err := startApp(binPath, sockPath, opts.WorkDir)
 	if err != nil {
 		shell.Process.Kill()
+		<-shellDone
 		return err
 	}
 
@@ -90,9 +109,11 @@ func Dev(opts DevOptions) error {
 		defer stopWatch()
 	}
 	restarting := false
+	built := make(chan error, 1)
 
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(sig)
 	for {
 		select {
 		case <-changes:
@@ -100,26 +121,30 @@ func Dev(opts DevOptions) error {
 				continue
 			}
 			restarting = true
-			go func() {
-				defer func() { restarting = false }()
-				if err := buildApp(opts.WorkDir, opts.Pkg, binPath); err != nil {
-					log.Printf("nib dev: 构建失败，保留旧进程：%v", err)
-					return
-				}
-				stopApp(app)
-				next, err := startApp(binPath, sockPath, opts.WorkDir)
-				if err != nil {
-					log.Printf("nib dev: 重启业务进程失败: %v", err)
-					return
-				}
-				app = next
-				log.Printf("nib dev: 业务进程已热替换")
-			}()
+			go func() { built <- buildApp(opts.WorkDir, opts.Pkg, binPath) }()
+		case err := <-built:
+			restarting = false
+			if err != nil {
+				log.Printf("nib dev: 构建失败，保留旧进程：%v", err)
+				continue
+			}
+			stopApp(app)
+			next, err := startApp(binPath, sockPath, opts.WorkDir)
+			if err != nil {
+				log.Printf("nib dev: 重启业务进程失败: %v", err)
+				continue
+			}
+			app = next
+			log.Printf("nib dev: 业务进程已热替换")
+		case err := <-shellDone:
+			stopApp(app)
+			os.Remove(sockPath)
+			return err
 		case s := <-sig:
 			log.Printf("nib dev: 收到 %v，退出", s)
 			stopApp(app)
 			shell.Process.Signal(syscall.SIGTERM)
-			shell.Wait()
+			<-shellDone
 			os.Remove(sockPath)
 			return nil
 		}
@@ -172,5 +197,67 @@ func RunShell(sockPath, eventsPath string) error {
 		return fmt.Errorf("监听 %s: %w", sockPath, err)
 	}
 	defer os.Remove(sockPath)
-	return serveShell(ln, eventsPath)
+	defer ln.Close()
+	return serveShell(ln, eventsPath, ShellOptions{})
+}
+
+// ShellOptions configures explicitly enabled local automation on the resident shell.
+type ShellOptions struct {
+	Headless bool
+	Driver   driver.Options
+}
+
+func RunShellWithOptions(sockPath, eventsPath string, opts ShellOptions) error {
+	if err := driver.ValidateTimeout(opts.Driver.Timeout); err != nil {
+		return err
+	}
+	os.Remove(sockPath)
+	ln, err := net.Listen("unix", sockPath)
+	if err != nil {
+		return err
+	}
+	defer ln.Close()
+	defer os.Remove(sockPath)
+	return serveShell(ln, eventsPath, opts)
+}
+
+func waitShellSocket(path string, exited <-chan error, timeout time.Duration) error {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	ticker := time.NewTicker(20 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		if info, err := os.Stat(path); err == nil && info.Mode()&os.ModeSocket != 0 {
+			return nil
+		}
+		select {
+		case err := <-exited:
+			if err == nil {
+				return fmt.Errorf("shell exited before its socket became ready")
+			}
+			return fmt.Errorf("shell startup failed: %w", err)
+		case <-timer.C:
+			return fmt.Errorf("shell socket readiness timed out")
+		case <-ticker.C:
+		}
+	}
+}
+
+// devShellArgs preserves automation options across the resident-shell process boundary.
+// The token is intentionally carried only by the environment.
+func devShellArgs(sockPath string, opts DevOptions) ([]string, error) {
+	if err := driver.ValidateTimeout(opts.Driver.Timeout); err != nil {
+		return nil, err
+	}
+	args := []string{"shell", "--sock", sockPath}
+	if opts.Events != "" {
+		args = append(args, "--events", opts.Events)
+	}
+	if opts.Headless {
+		args = append(args, "--headless")
+	}
+	if opts.Driver.Port != 0 {
+		args = append(args, "--driver-port", fmt.Sprint(opts.Driver.Port), "--driver-timeout", opts.Driver.Timeout.String())
+	}
+	return args, nil
 }

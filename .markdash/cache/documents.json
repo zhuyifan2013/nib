@@ -1,28 +1,44 @@
 {
-  "generated_at": "2026-09-22T16:23:11.699Z",
+  "generated_at": "2026-10-08T12:26:30.259Z",
   "summary": {
     "totals": {
-      "documents": 34,
-      "tasks": 10,
+      "documents": 42,
+      "tasks": 13,
       "risks": 4,
-      "decisions": 10,
-      "tests": 3
+      "decisions": 11,
+      "tests": 5
     },
     "tasks": {
       "by_status": {
         "done": 4,
-        "backlog": 5,
-        "in_progress": 1
+        "in_progress": 3,
+        "backlog": 6
       },
       "blocked": [],
       "in_progress": [
+        {
+          "id": "cli-structured-output",
+          "title": "M2 结构化 CLI 输出与环境自检",
+          "type": "task",
+          "status": "in_progress",
+          "path": "docs/tasks/cli-structured-output.md",
+          "updated_at": "2026-10-08"
+        },
         {
           "id": "m2-diagnostics",
           "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
           "type": "task",
           "status": "in_progress",
           "path": "docs/tasks/m2-diagnostics.md",
-          "updated_at": "2026-09-23"
+          "updated_at": "2026-10-08"
+        },
+        {
+          "id": "release-v1",
+          "title": "Nib 正式发布路线图与完整功能验收",
+          "type": "task",
+          "status": "in_progress",
+          "path": "docs/tasks/release-v1.md",
+          "updated_at": "2026-10-08"
         }
       ],
       "overdue": []
@@ -67,82 +83,113 @@
     },
     "tests": {
       "by_status": {
-        "passing": 3
+        "passing": 5
       }
     },
-    "stale": [],
+    "stale": [
+      {
+        "id": "guide-agent-workflow",
+        "path": "docs/guide/agent-workflow.md",
+        "updated_at": "2026-09-16",
+        "age_days": 22
+      },
+      {
+        "id": "guide-documentation-policy",
+        "path": "docs/guide/documentation-policy.md",
+        "updated_at": "2026-09-16",
+        "age_days": 22
+      },
+      {
+        "id": "guide-metadata-schema",
+        "path": "docs/guide/metadata-schema.md",
+        "updated_at": "2026-09-16",
+        "age_days": 22
+      },
+      {
+        "id": "design-v0-1",
+        "path": "docs/notes/design-v0.1.md",
+        "updated_at": "2026-09-21",
+        "age_days": 17
+      },
+      {
+        "id": "dev-workflow",
+        "path": "docs/operations/dev-workflow.md",
+        "updated_at": "2026-09-22",
+        "age_days": 16
+      }
+    ],
     "recent": [
+      {
+        "id": "event-stream",
+        "title": "事件流（M2 增量 1）测试",
+        "type": "test",
+        "status": "passing",
+        "path": "docs/tests/event-stream.md",
+        "updated_at": "2026-10-08"
+      },
+      {
+        "id": "driver-e2e",
+        "title": "M2 本机驱动与隐藏窗口验证",
+        "type": "test",
+        "status": "passing",
+        "path": "docs/tests/driver-e2e.md",
+        "updated_at": "2026-10-08"
+      },
+      {
+        "id": "runtime-lifecycle",
+        "title": "生产运行时与开发外壳生命周期完善",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/runtime-lifecycle.md",
+        "updated_at": "2026-10-08"
+      },
+      {
+        "id": "release-v1",
+        "title": "Nib 正式发布路线图与完整功能验收",
+        "type": "task",
+        "status": "in_progress",
+        "path": "docs/tasks/release-v1.md",
+        "updated_at": "2026-10-08"
+      },
       {
         "id": "m2-diagnostics",
         "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
         "type": "task",
         "status": "in_progress",
         "path": "docs/tasks/m2-diagnostics.md",
-        "updated_at": "2026-09-23"
+        "updated_at": "2026-10-08"
       },
       {
-        "id": "ipc-error-path",
-        "title": "IPC 错误路径测试",
-        "type": "test",
-        "status": "passing",
-        "path": "docs/tests/ipc-error-path.md",
-        "updated_at": "2026-09-22"
-      },
-      {
-        "id": "dev-harness-e2e",
-        "title": "Dev Harness 端到端热替换验证",
-        "type": "test",
-        "status": "passing",
-        "path": "docs/tests/dev-harness-e2e.md",
-        "updated_at": "2026-09-22"
-      },
-      {
-        "id": "ipc-error-path-test",
-        "title": "IPC 错误路径验证",
+        "id": "cli-structured-output",
+        "title": "M2 结构化 CLI 输出与环境自检",
         "type": "task",
-        "status": "done",
-        "path": "docs/tasks/ipc-error-path-test.md",
-        "updated_at": "2026-09-22"
+        "status": "in_progress",
+        "path": "docs/tasks/cli-structured-output.md",
+        "updated_at": "2026-10-08"
       },
       {
-        "id": "dev-harness",
-        "title": "Dev Harness 常驻外壳（后端热替换）",
-        "type": "task",
-        "status": "done",
-        "path": "docs/tasks/dev-harness.md",
-        "updated_at": "2026-09-22"
-      },
-      {
-        "id": "demo-apps",
-        "title": "生产价值示范性项目（agent-native dogfood）",
-        "type": "task",
-        "status": "backlog",
-        "path": "docs/tasks/demo-apps.md",
-        "updated_at": "2026-09-22"
-      },
-      {
-        "id": "binding-generator",
-        "title": "绑定生成器（Go AST → TypeScript）",
-        "type": "task",
-        "status": "done",
-        "path": "docs/tasks/binding-generator.md",
-        "updated_at": "2026-09-22"
-      },
-      {
-        "id": "dev-harness-complexity",
-        "title": "Dev Harness 热替换技术难度",
-        "type": "risk",
-        "status": "mitigated",
-        "path": "docs/risks/dev-harness-complexity.md",
-        "updated_at": "2026-09-22"
-      },
-      {
-        "id": "dev-workflow",
-        "title": "开发环境与本机工作流",
-        "type": "note",
+        "id": "nib",
+        "title": "Nib — AI 时代跨平台桌面框架",
+        "type": "project",
         "status": "active",
-        "path": "docs/operations/dev-workflow.md",
-        "updated_at": "2026-09-22"
+        "path": "docs/projects/nib.md",
+        "updated_at": "2026-10-08"
+      },
+      {
+        "id": "driver",
+        "title": "macOS 本机驱动 API 使用",
+        "type": "doc",
+        "status": "active",
+        "path": "docs/operations/driver.md",
+        "updated_at": "2026-10-08"
+      },
+      {
+        "id": "autonomous-delivery",
+        "title": "自主交付编排与交接",
+        "type": "doc",
+        "status": "active",
+        "path": "docs/operations/autonomous-delivery.md",
+        "updated_at": "2026-10-08"
       },
       {
         "id": "doc-index",
@@ -150,10 +197,10 @@
         "type": "doc",
         "status": "active",
         "path": "docs/index.md",
-        "updated_at": "2026-09-22"
+        "updated_at": "2026-10-08"
       }
     ],
-    "generated_at": "2026-09-22T16:23:11.699Z"
+    "generated_at": "2026-10-08T12:26:30.259Z"
   },
   "documents": [
     {
@@ -369,6 +416,34 @@
       "path": "docs/decisions/go-backend.md"
     },
     {
+      "id": "local-driver",
+      "title": "M2 本机 HTTP 驱动与隐藏窗口边界",
+      "type": "decision",
+      "status": "accepted",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "m2",
+        "driver",
+        "security"
+      ],
+      "related": [
+        "m2-diagnostics",
+        "cli-first",
+        "dev-harness-impl"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-10-08",
+      "updated_at": "2026-10-08",
+      "path": "docs/decisions/local-driver.md"
+    },
+    {
       "id": "no-ai-runtime",
       "title": "框架不内置 AI 运行时",
       "type": "decision",
@@ -507,7 +582,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-22",
+      "updated_at": "2026-10-08",
       "path": "docs/index.md"
     },
     {
@@ -536,6 +611,33 @@
       "path": "docs/notes/design-v0.1.md"
     },
     {
+      "id": "autonomous-delivery",
+      "title": "自主交付编排与交接",
+      "type": "doc",
+      "status": "active",
+      "owner": "ai",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "workflow",
+        "release",
+        "agents"
+      ],
+      "related": [
+        "release-v1",
+        "m2-diagnostics"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-10-08",
+      "updated_at": "2026-10-08",
+      "path": "docs/operations/autonomous-delivery.md"
+    },
+    {
       "id": "dev-workflow",
       "title": "开发环境与本机工作流",
       "type": "note",
@@ -559,6 +661,34 @@
       "path": "docs/operations/dev-workflow.md"
     },
     {
+      "id": "driver",
+      "title": "macOS 本机驱动 API 使用",
+      "type": "doc",
+      "status": "active",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "m2",
+        "driver",
+        "operations"
+      ],
+      "related": [
+        "local-driver",
+        "driver-e2e",
+        "m2-diagnostics"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-10-08",
+      "updated_at": "2026-10-08",
+      "path": "docs/operations/driver.md"
+    },
+    {
       "id": "nib",
       "title": "Nib — AI 时代跨平台桌面框架",
       "type": "project",
@@ -580,7 +710,7 @@
       "kind": "",
       "health": "green",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-21",
+      "updated_at": "2026-10-08",
       "path": "docs/projects/nib.md"
     },
     {
@@ -710,6 +840,34 @@
       "path": "docs/tasks/binding-generator.md"
     },
     {
+      "id": "cli-structured-output",
+      "title": "M2 结构化 CLI 输出与环境自检",
+      "type": "task",
+      "status": "in_progress",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "m2",
+        "cli",
+        "diagnostics"
+      ],
+      "related": [
+        "m2-diagnostics",
+        "cli-first",
+        "release-v1"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-10-08",
+      "updated_at": "2026-10-08",
+      "path": "docs/tasks/cli-structured-output.md"
+    },
+    {
       "id": "demo-apps",
       "title": "生产价值示范性项目（agent-native dogfood）",
       "type": "task",
@@ -815,7 +973,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-09-23",
+      "updated_at": "2026-10-08",
       "path": "docs/tasks/m2-diagnostics.md"
     },
     {
@@ -893,6 +1051,68 @@
       "created_at": "2026-09-21",
       "updated_at": "2026-09-21",
       "path": "docs/tasks/minimal-runtime-mac.md"
+    },
+    {
+      "id": "release-v1",
+      "title": "Nib 正式发布路线图与完整功能验收",
+      "type": "task",
+      "status": "in_progress",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "release",
+        "roadmap",
+        "v1"
+      ],
+      "related": [
+        "nib",
+        "m2-diagnostics",
+        "webview-windows",
+        "webview-linux",
+        "m3-security",
+        "m4-distribution",
+        "demo-apps",
+        "frontend-stack",
+        "cli-first"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-10-08",
+      "updated_at": "2026-10-08",
+      "path": "docs/tasks/release-v1.md"
+    },
+    {
+      "id": "runtime-lifecycle",
+      "title": "生产运行时与开发外壳生命周期完善",
+      "type": "task",
+      "status": "backlog",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "runtime",
+        "lifecycle",
+        "reliability"
+      ],
+      "related": [
+        "release-v1",
+        "dev-harness",
+        "m2-diagnostics"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-10-08",
+      "updated_at": "2026-10-08",
+      "path": "docs/tasks/runtime-lifecycle.md"
     },
     {
       "id": "webview-linux",
@@ -996,6 +1216,61 @@
       "created_at": "2026-09-22",
       "updated_at": "2026-09-22",
       "path": "docs/tests/dev-harness-e2e.md"
+    },
+    {
+      "id": "driver-e2e",
+      "title": "M2 本机驱动与隐藏窗口验证",
+      "type": "test",
+      "status": "passing",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "m2",
+        "driver",
+        "macos"
+      ],
+      "related": [
+        "m2-diagnostics",
+        "local-driver",
+        "driver",
+        "event-stream"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "e2e",
+      "health": "",
+      "created_at": "2026-10-08",
+      "updated_at": "2026-10-08",
+      "path": "docs/tests/driver-e2e.md"
+    },
+    {
+      "id": "event-stream",
+      "title": "事件流（M2 增量 1）测试",
+      "type": "test",
+      "status": "passing",
+      "owner": "",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "m2",
+        "observability"
+      ],
+      "related": [
+        "m2-diagnostics",
+        "cli-first"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "e2e",
+      "health": "",
+      "created_at": "2026-09-24",
+      "updated_at": "2026-10-08",
+      "path": "docs/tests/event-stream.md"
     },
     {
       "id": "ipc-error-path",

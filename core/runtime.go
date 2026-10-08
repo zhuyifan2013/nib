@@ -3,6 +3,8 @@
 package core
 
 import (
+	"fmt"
+	"nib.dev/nib/driver"
 	"nib.dev/nib/events"
 
 	"os"
@@ -22,6 +24,8 @@ type Options struct {
 
 	// DevTools 是否允许打开开发者工具（开发模式）。
 	DevTools bool
+	Headless bool
+	Driver   driver.Options // Explicit opt-in; zero Port disables automation.
 }
 
 // Window 是平台窗口 + WebView 的抽象。
@@ -87,6 +91,18 @@ func (r *Runtime) Run(startURL string) error {
 	win, err := r.openWindow()
 	if err != nil {
 		return err
+	}
+	defer win.Close()
+	if r.opts.Driver.Port != 0 {
+		native, ok := win.(driver.Window)
+		if !ok {
+			return fmt.Errorf("driver unsupported on this window; use nib dev driver flags for harness mode")
+		}
+		server, err := driver.Start(native, r.opts.Driver)
+		if err != nil {
+			return err
+		}
+		defer server.Close()
 	}
 	for name, h := range r.bindings {
 		if err := win.Bind(name, h); err != nil {

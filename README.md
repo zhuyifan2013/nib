@@ -54,11 +54,15 @@ Every design decision follows from it:
 
 > **M1 — minimal runtime: complete.** The macOS chain is verified end-to-end:
 > runtime, error paths, binding generator, and the dev harness with
-> ~1 s backend hot-swap. Windows/Linux support and M2 diagnostics are next.
+> ~1 s backend hot-swap. **M2 diagnostics: in progress** — structured event
+> streams, cross-process replay, and NDJSON export are complete. The headless
+> driver is next; Windows/Linux bindings remain in the backlog.
 
 **Working today:** windows, JS bridge, IPC protocol, error envelope, Go bindings,
 base64 response transport, binding generator (Go → TypeScript), dev harness with
-~1 s backend hot-swap (`nib dev`). Verified by [`cmd/demo`](cmd/demo/main.go).
+~1 s backend hot-swap (`nib dev`), and structured event streams with NDJSON
+export (`nib dev/shell --events`). Runtime verified by [`cmd/demo`](cmd/demo/main.go);
+event-stream verification is recorded in [the test document](docs/tests/event-stream.md).
 
 **Planned:** see [Roadmap](#roadmap).
 
@@ -216,6 +220,10 @@ The ~33% size overhead is irrelevant for IPC-sized payloads.
 - [x] Dev harness — persistent shell + backend hot-swap (<2 s iteration) ([task](docs/tasks/dev-harness.md))
 - [ ] Windows (WebView2) and Linux (WebKitGTK) bindings
 - [ ] **M2 diagnostics** — runtime event stream, `--json` CLI, headless driver, MCP server
+  - [x] Structured event stream, cross-process replay, and NDJSON export
+  - [ ] Headless driver
+  - [ ] CLI `--json`
+  - [ ] MCP server
 - [ ] **M3 security** — permission annotations (default-deny), dependency audit, `dev --sandbox`
 - [ ] **M4 distribution** — signed delta updates with rollback, declarative UI hot-delivery
 

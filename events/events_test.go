@@ -88,3 +88,19 @@ func TestDropSlowConsumer(t *testing.T) {
 		b.Emit(IPCCall, nil)
 	}
 }
+
+func TestConcurrentEmitUnsubscribe(t *testing.T) {
+	b := NewBus(32)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 10000; i++ {
+			b.Emit(IPCCall, nil)
+		}
+	}()
+	for i := 0; i < 1000; i++ {
+		s := b.Subscribe(false)
+		s.Unsubscribe()
+	}
+	<-done
+}
