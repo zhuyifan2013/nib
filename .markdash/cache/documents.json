@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-11-17T03:11:21.211Z",
+  "generated_at": "2026-11-17T03:55:17.914Z",
   "summary": {
     "totals": {
-      "documents": 43,
-      "tasks": 13,
+      "documents": 45,
+      "tasks": 14,
       "risks": 4,
       "decisions": 11,
       "tests": 5
     },
     "tasks": {
       "by_status": {
-        "done": 5,
+        "done": 6,
         "backlog": 6,
         "in_progress": 2
       },
@@ -132,6 +132,14 @@
         "updated_at": "2026-11-17"
       },
       {
+        "id": "mcp-server",
+        "title": "M2 MCP 本机驱动接入",
+        "type": "task",
+        "status": "done",
+        "path": "docs/tasks/mcp-server.md",
+        "updated_at": "2026-11-17"
+      },
+      {
         "id": "m2-diagnostics",
         "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
         "type": "task",
@@ -153,6 +161,14 @@
         "type": "task",
         "status": "done",
         "path": "docs/tasks/cli-structured-output.md",
+        "updated_at": "2026-11-17"
+      },
+      {
+        "id": "mcp-operations",
+        "title": "MCP 驱动使用",
+        "type": "doc",
+        "status": "active",
+        "path": "docs/operations/mcp.md",
         "updated_at": "2026-11-17"
       },
       {
@@ -186,25 +202,9 @@
         "status": "passing",
         "path": "docs/tests/event-stream.md",
         "updated_at": "2026-10-08"
-      },
-      {
-        "id": "driver-e2e",
-        "title": "M2 本机驱动与隐藏窗口验证",
-        "type": "test",
-        "status": "passing",
-        "path": "docs/tests/driver-e2e.md",
-        "updated_at": "2026-10-08"
-      },
-      {
-        "id": "runtime-lifecycle",
-        "title": "生产运行时与开发外壳生命周期完善",
-        "type": "task",
-        "status": "backlog",
-        "path": "docs/tasks/runtime-lifecycle.md",
-        "updated_at": "2026-10-08"
       }
     ],
-    "generated_at": "2026-11-17T03:11:21.211Z"
+    "generated_at": "2026-11-17T03:55:17.914Z"
   },
   "documents": [
     {
@@ -719,6 +719,32 @@
       "path": "docs/operations/driver.md"
     },
     {
+      "id": "mcp-operations",
+      "title": "MCP 驱动使用",
+      "type": "doc",
+      "status": "active",
+      "owner": "ai",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "mcp",
+        "diagnostics"
+      ],
+      "related": [
+        "mcp-server",
+        "driver"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-11-17",
+      "updated_at": "2026-11-17",
+      "path": "docs/operations/mcp.md"
+    },
+    {
       "id": "nib",
       "title": "Nib — AI 时代跨平台桌面框架",
       "type": "project",
@@ -1054,6 +1080,34 @@
       "created_at": "2026-09-21",
       "updated_at": "2026-09-21",
       "path": "docs/tasks/m4-distribution.md"
+    },
+    {
+      "id": "mcp-server",
+      "title": "M2 MCP 本机驱动接入",
+      "type": "task",
+      "status": "done",
+      "owner": "ai",
+      "priority": "high",
+      "due": "",
+      "tags": [
+        "m2",
+        "mcp",
+        "diagnostics"
+      ],
+      "related": [
+        "m2-diagnostics",
+        "local-driver",
+        "cli-structured-output"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-11-17",
+      "updated_at": "2026-11-17",
+      "path": "docs/tasks/mcp-server.md"
     },
     {
       "id": "minimal-runtime-mac",

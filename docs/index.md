@@ -19,7 +19,7 @@ Nib 是 AI 时代的轻量跨平台桌面框架：系统 WebView 壳 + Go 核心
 M2 诊断（`m2-diagnostics`）进行中：增量 1 结构化事件流已完成并验证
 （`event-stream`），支持跨进程转发、重放与 NDJSON 导出。
 增量 2 macOS 隐藏窗口驱动已通过独立 review 与实机验证（`driver-e2e`）；
-CLI `--json` 与 doctor（`cli-structured-output`）已通过验证与独立审查，下一批是 MCP server。
+CLI `--json` 与 doctor（`cli-structured-output`）及 MCP server（`mcp-server`）已通过验证与独立审查。
 Windows（`webview-windows`）与 Linux（`webview-linux`）绑定仍在 backlog。
 正式发布目标与完整功能待办见 `release-v1`：覆盖三平台、完整 IPC、工具链、
 安全、安装更新、真实应用验证与框架公开发布。
