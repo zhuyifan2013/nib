@@ -22,6 +22,17 @@ func serveShell(ln net.Listener, eventsPath string, opts ShellOptions) error {
 	}
 	win := webview.New(webview.Options{Title: title, Width: 1024, Height: 768, DevTools: true, Headless: opts.Headless})
 	defer win.Close()
+	done := make(chan struct{})
+	defer close(done)
+	if opts.Context != nil {
+		go func() {
+			select {
+			case <-opts.Context.Done():
+				win.Close()
+			case <-done:
+			}
+		}()
+	}
 	if opts.Driver.Port != 0 {
 		server, err := driver.Start(win, opts.Driver)
 		if err != nil {
@@ -29,6 +40,9 @@ func serveShell(ln net.Listener, eventsPath string, opts ShellOptions) error {
 		}
 		defer server.Close()
 		log.Printf("nib driver: http://%s (Bearer authentication required)", server.Addr())
+	}
+	if opts.Notify != nil {
+		opts.Notify("running", map[string]any{"driver_port": opts.Driver.Port})
 	}
 	if eventsPath != "" {
 		defer exportEvents(win, eventsPath)()

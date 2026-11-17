@@ -41,6 +41,10 @@ import (
 // 使用 C.malloc 分配的 token 而非 Go 指针，遵守 cgo 指针传递规则。
 var registry sync.Map // unsafe.Pointer(C token) -> *Window
 
+// Package initialization runs on the process main thread. Keep the main
+// goroutine there so AppKit windows can be created after earlier Go work.
+func init() { runtime.LockOSThread() }
+
 // Window 是 macOS 上 NSWindow + WKWebView 的封装。
 type Window struct {
 	handle   unsafe.Pointer         // *C 结构（webview_darwin.m 中 malloc）
@@ -54,8 +58,7 @@ type Window struct {
 }
 
 func New(opts Options) *Window {
-	// AppKit 要求主线程运行事件循环；锁定当前（主）goroutine 防止调度器迁移。
-	runtime.LockOSThread()
+	// AppKit calls must run on the main goroutine.
 	title := C.CString(opts.Title)
 	defer C.free(unsafe.Pointer(title))
 	h := C.nibWindowCreate(title, C.int(opts.Width), C.int(opts.Height), cbool(opts.DevTools), cbool(opts.Headless))

@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-08T12:26:30.259Z",
+  "generated_at": "2026-11-17T03:11:21.211Z",
   "summary": {
     "totals": {
-      "documents": 42,
+      "documents": 43,
       "tasks": 13,
       "risks": 4,
       "decisions": 11,
@@ -10,27 +10,19 @@
     },
     "tasks": {
       "by_status": {
-        "done": 4,
-        "in_progress": 3,
-        "backlog": 6
+        "done": 5,
+        "backlog": 6,
+        "in_progress": 2
       },
       "blocked": [],
       "in_progress": [
-        {
-          "id": "cli-structured-output",
-          "title": "M2 结构化 CLI 输出与环境自检",
-          "type": "task",
-          "status": "in_progress",
-          "path": "docs/tasks/cli-structured-output.md",
-          "updated_at": "2026-10-08"
-        },
         {
           "id": "m2-diagnostics",
           "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
           "type": "task",
           "status": "in_progress",
           "path": "docs/tasks/m2-diagnostics.md",
-          "updated_at": "2026-10-08"
+          "updated_at": "2026-11-17"
         },
         {
           "id": "release-v1",
@@ -38,7 +30,7 @@
           "type": "task",
           "status": "in_progress",
           "path": "docs/tasks/release-v1.md",
-          "updated_at": "2026-10-08"
+          "updated_at": "2026-11-17"
         }
       ],
       "overdue": []
@@ -91,34 +83,102 @@
         "id": "guide-agent-workflow",
         "path": "docs/guide/agent-workflow.md",
         "updated_at": "2026-09-16",
-        "age_days": 22
+        "age_days": 62
       },
       {
         "id": "guide-documentation-policy",
         "path": "docs/guide/documentation-policy.md",
         "updated_at": "2026-09-16",
-        "age_days": 22
+        "age_days": 62
       },
       {
         "id": "guide-metadata-schema",
         "path": "docs/guide/metadata-schema.md",
         "updated_at": "2026-09-16",
-        "age_days": 22
+        "age_days": 62
       },
       {
         "id": "design-v0-1",
         "path": "docs/notes/design-v0.1.md",
         "updated_at": "2026-09-21",
-        "age_days": 17
+        "age_days": 57
       },
       {
         "id": "dev-workflow",
         "path": "docs/operations/dev-workflow.md",
         "updated_at": "2026-09-22",
-        "age_days": 16
+        "age_days": 56
+      },
+      {
+        "id": "driver",
+        "path": "docs/operations/driver.md",
+        "updated_at": "2026-10-08",
+        "age_days": 40
+      },
+      {
+        "id": "nib",
+        "path": "docs/projects/nib.md",
+        "updated_at": "2026-10-08",
+        "age_days": 40
       }
     ],
     "recent": [
+      {
+        "id": "release-v1",
+        "title": "Nib 正式发布路线图与完整功能验收",
+        "type": "task",
+        "status": "in_progress",
+        "path": "docs/tasks/release-v1.md",
+        "updated_at": "2026-11-17"
+      },
+      {
+        "id": "m2-diagnostics",
+        "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
+        "type": "task",
+        "status": "in_progress",
+        "path": "docs/tasks/m2-diagnostics.md",
+        "updated_at": "2026-11-17"
+      },
+      {
+        "id": "demo-apps",
+        "title": "生产价值示范性项目（agent-native dogfood）",
+        "type": "task",
+        "status": "backlog",
+        "path": "docs/tasks/demo-apps.md",
+        "updated_at": "2026-11-17"
+      },
+      {
+        "id": "cli-structured-output",
+        "title": "M2 结构化 CLI 输出与环境自检",
+        "type": "task",
+        "status": "done",
+        "path": "docs/tasks/cli-structured-output.md",
+        "updated_at": "2026-11-17"
+      },
+      {
+        "id": "cli-json",
+        "title": "CLI 结构化输出契约",
+        "type": "doc",
+        "status": "active",
+        "path": "docs/operations/cli-json.md",
+        "updated_at": "2026-11-17"
+      },
+      {
+        "id": "autonomous-delivery",
+        "title": "自主交付编排与交接",
+        "type": "doc",
+        "status": "active",
+        "path": "docs/operations/autonomous-delivery.md",
+        "updated_at": "2026-11-17"
+      },
+      {
+        "id": "doc-index",
+        "title": "Project index",
+        "type": "doc",
+        "status": "active",
+        "path": "docs/index.md",
+        "updated_at": "2026-11-17"
+      },
       {
         "id": "event-stream",
         "title": "事件流（M2 增量 1）测试",
@@ -142,65 +202,9 @@
         "status": "backlog",
         "path": "docs/tasks/runtime-lifecycle.md",
         "updated_at": "2026-10-08"
-      },
-      {
-        "id": "release-v1",
-        "title": "Nib 正式发布路线图与完整功能验收",
-        "type": "task",
-        "status": "in_progress",
-        "path": "docs/tasks/release-v1.md",
-        "updated_at": "2026-10-08"
-      },
-      {
-        "id": "m2-diagnostics",
-        "title": "M2 诊断层（事件流 / CLI --json / 无头驱动）",
-        "type": "task",
-        "status": "in_progress",
-        "path": "docs/tasks/m2-diagnostics.md",
-        "updated_at": "2026-10-08"
-      },
-      {
-        "id": "cli-structured-output",
-        "title": "M2 结构化 CLI 输出与环境自检",
-        "type": "task",
-        "status": "in_progress",
-        "path": "docs/tasks/cli-structured-output.md",
-        "updated_at": "2026-10-08"
-      },
-      {
-        "id": "nib",
-        "title": "Nib — AI 时代跨平台桌面框架",
-        "type": "project",
-        "status": "active",
-        "path": "docs/projects/nib.md",
-        "updated_at": "2026-10-08"
-      },
-      {
-        "id": "driver",
-        "title": "macOS 本机驱动 API 使用",
-        "type": "doc",
-        "status": "active",
-        "path": "docs/operations/driver.md",
-        "updated_at": "2026-10-08"
-      },
-      {
-        "id": "autonomous-delivery",
-        "title": "自主交付编排与交接",
-        "type": "doc",
-        "status": "active",
-        "path": "docs/operations/autonomous-delivery.md",
-        "updated_at": "2026-10-08"
-      },
-      {
-        "id": "doc-index",
-        "title": "Project index",
-        "type": "doc",
-        "status": "active",
-        "path": "docs/index.md",
-        "updated_at": "2026-10-08"
       }
     ],
-    "generated_at": "2026-10-08T12:26:30.259Z"
+    "generated_at": "2026-11-17T03:11:21.211Z"
   },
   "documents": [
     {
@@ -582,7 +586,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-10-08",
+      "updated_at": "2026-11-17",
       "path": "docs/index.md"
     },
     {
@@ -634,8 +638,34 @@
       "kind": "",
       "health": "",
       "created_at": "2026-10-08",
-      "updated_at": "2026-10-08",
+      "updated_at": "2026-11-17",
       "path": "docs/operations/autonomous-delivery.md"
+    },
+    {
+      "id": "cli-json",
+      "title": "CLI 结构化输出契约",
+      "type": "doc",
+      "status": "active",
+      "owner": "ai",
+      "priority": "",
+      "due": "",
+      "tags": [
+        "cli",
+        "diagnostics"
+      ],
+      "related": [
+        "cli-structured-output",
+        "m2-diagnostics"
+      ],
+      "project": "",
+      "blocked_by": [],
+      "probability": "",
+      "impact": "",
+      "kind": "",
+      "health": "",
+      "created_at": "2026-11-17",
+      "updated_at": "2026-11-17",
+      "path": "docs/operations/cli-json.md"
     },
     {
       "id": "dev-workflow",
@@ -843,7 +873,7 @@
       "id": "cli-structured-output",
       "title": "M2 结构化 CLI 输出与环境自检",
       "type": "task",
-      "status": "in_progress",
+      "status": "done",
       "owner": "ai",
       "priority": "high",
       "due": "",
@@ -864,7 +894,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-10-08",
-      "updated_at": "2026-10-08",
+      "updated_at": "2026-11-17",
       "path": "docs/tasks/cli-structured-output.md"
     },
     {
@@ -882,7 +912,8 @@
       ],
       "related": [
         "frontend-stack",
-        "m2-diagnostics"
+        "m2-diagnostics",
+        "release-v1"
       ],
       "project": "",
       "blocked_by": [],
@@ -891,7 +922,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-22",
-      "updated_at": "2026-09-22",
+      "updated_at": "2026-11-17",
       "path": "docs/tasks/demo-apps.md"
     },
     {
@@ -973,7 +1004,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-09-21",
-      "updated_at": "2026-10-08",
+      "updated_at": "2026-11-17",
       "path": "docs/tasks/m2-diagnostics.md"
     },
     {
@@ -1083,7 +1114,7 @@
       "kind": "",
       "health": "",
       "created_at": "2026-10-08",
-      "updated_at": "2026-10-08",
+      "updated_at": "2026-11-17",
       "path": "docs/tasks/release-v1.md"
     },
     {

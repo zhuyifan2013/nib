@@ -9,7 +9,7 @@ tags: [release, roadmap, v1]
 related: [nib, m2-diagnostics, webview-windows, webview-linux, m3-security, m4-distribution, demo-apps, frontend-stack, cli-first]
 blocked_by: []
 created_at: 2026-10-08
-updated_at: 2026-10-08
+updated_at: 2026-11-17
 ---
 
 # Nib 正式发布路线图
@@ -20,17 +20,15 @@ updated_at: 2026-10-08
 
 ## 当前基线
 
-2026-10-08：用户授权主 agent 持续统筹路线图，以实现 subagent → 独立 review agent →
-修复/复核 → 下一工作包的流程自主推进，无需常规实现确认。当前批次为 M2 增量 2
-无头驱动；治理与交接规则见 `autonomous-delivery`。此状态表示整体交付已启动，
-不表示全部工作包同时开工或已完成。
-
-- 已交付：macOS 基础窗口与 call 桥、错误信封格式、TS 生成器、开发态后端热替换、事件流与 NDJSON 导出。
-- 尚缺：Windows/Linux 运行时及 shell；stream/event 运行时；完整错误因果链；无头驱动、MCP、结构化 CLI；产品级脚手架与构建发行；安全与更新层。
-- CLI 当前仅 dev/shell/probe，生成器为独立 nibgen；不能据 README 设计愿景推断 new/build/doctor/ship/audit 已可用。
-- 本次规划不重新执行测试；最近复核见 event-stream：2026-10-08 go test ./... 通过，不含新 GUI E2E。
+- 已交付：macOS 基础窗口与 call 桥、错误信封格式、TS 生成器、开发态后端热替换、事件流与 NDJSON 导出，以及 macOS 隐藏窗口驱动。验收见 `event-stream` 与 `driver-e2e`。
+- 当前批次：`--json` 与 `doctor` 已有待验收草稿。自动接续处于暂停状态，交接见 `autonomous-delivery`。
+- 后续工作：MCP、Windows/Linux 运行时及 shell、stream/event 运行时、完整错误因果链、产品级脚手架与构建发行、安全与更新层。
 
 ## 发布工作包与验收
+
+### macOS 开发者预览
+
+首个里程碑是用 Nib 开发一个类似 macOS Notes 的本地笔记应用。先用现有工具跑通编辑、持久化与驱动验证，再由应用的实际需求确定预览版的构建和本地资源加载范围。交付物包括可离线启动的构建产物、可复验的驱动脚本和一次从修改代码到验证界面的迭代基准。应用范围与验收见 `demo-apps`。
 
 ### R1：平台与生产运行时
 
@@ -102,7 +100,7 @@ updated_at: 2026-10-08
 - [ ] CI：各平台 native 构建与测试、Go 检查、TS 严格类型检查、协议兼容测试、安装包 smoke test。
 - [ ] 自动化覆盖：权限拒绝、panic、取消、并发/大消息、流背压、重连、WebView 终止、资源加载与更新回滚。
 - [ ] 长时间运行与反复热替换测试：内存、goroutine、句柄和子进程增长有基线与阈值。
-- [ ] 两个示范应用：CLI 工具 GUI 壳 + 流/事件实时任务面板；均离线可安装，全程 agent 驱动验证，只有最终视觉确认允许人工。
+- [ ] 两个示范应用：本地笔记应用 + 流/事件实时任务面板。两者均离线可安装，全程 agent 驱动验证，只有最终视觉确认允许人工。
 - [ ] 性能报告：指定硬件/OS/样本应用，测 T_iter <5s、增量编译 <1.5s、热替换 <2s、包体 <10MB、空闲内存 <50MB、冷启动 <1s；明确测量口径与系统 WebView 依赖成本。目标未达时优化或显式重新决策，不能把旧二进制体积当安装包结果。
 
 验收：所有支持组合有可复现测试证据；示范应用能覆盖主能力并公开构建与验证步骤；性能声明均对应可重复基准。
@@ -121,9 +119,9 @@ updated_at: 2026-10-08
 ## 实施顺序
 
 1. 冻结正式版支持矩阵与契约；记录待定产品选择，不提前宣布支持。
-2. 完成 M2 无头驱动；补本地资源加载、绑定注册闭环和最小 new/dev/build，使 macOS 端到端可自动验证。
-3. 完成 stream/event 与错误链；开发第一个真实应用，建立 CI。
-4. Windows/Linux 运行时与 dev harness 对齐，并复用同一协议/E2E 测试。
+2. 先完成当前 `--json` 与 `doctor` 批次的验收，按 `autonomous-delivery` 的暂停点交接。后续推进 M2 的 MCP 接入，并用现有工具开发 macOS 笔记原型，再补齐预览所需的本地资源加载、绑定注册和最小 new/dev/build。
+3. 完成 stream/event 与错误链；将笔记应用的端到端用例接入 CI。
+4. Windows/Linux 运行时与 dev harness 对齐，复用笔记应用及其协议和端到端测试。
 5. 权限与来源安全、官方能力、doctor/audit/spec/inspection 补齐，完成第二个真实应用。
 6. 安装包、签名、更新/回滚、UI 资源更新与模块加载；运行跨平台发行演练。
 7. 完成文档、性能与可靠性验证，发 RC，修复发布阻断项后 stable。

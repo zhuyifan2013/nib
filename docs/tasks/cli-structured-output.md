@@ -2,19 +2,36 @@
 id: cli-structured-output
 title: M2 结构化 CLI 输出与环境自检
 type: task
-status: in_progress
+status: done
 priority: high
 owner: ai
 tags: [m2, cli, diagnostics]
 related: [m2-diagnostics, cli-first, release-v1]
 blocked_by: []
 created_at: 2026-10-08
-updated_at: 2026-10-08
+updated_at: 2026-11-17
 ---
 
 # M2 下一批：结构化 CLI
 
+## 2026-11-17 续接
+
+修复参数解析器将末尾缺值 flag 的内部终止符当作值的问题，以及日志脱敏在缓冲边界可能泄露 token 的问题。GUI 验证发现 macOS 窗口创建偶发不在主线程，已在 webview 初始化时绑定主线程。
+
+`go test ./...`、`go test -race ./cli ./driver ./harness ./events` 通过；绑定生成器示例输出通过 TypeScript 7.0.2 严格类型检查。`python3 scripts/driver_e2e.py` 的直接模式和 harness 模式通过。另用真实 `nib dev --json --nowatch --headless` 启动 demo，驱动调用返回 `Hello, AI! (from Go)`，SIGTERM 后退出码 0，stdout 每行均为 JSON 且末条结果 exit_code 为 0。`nib doctor --json` 在本机 darwin/arm64 报告 Go、CGO、编译器与 macOS SDK 检查通过，GUI 状态为 unknown。输出契约见 `cli-json`。
+
+独立 review 与修复复核通过。审查发现并修复 JSON 字段级脱敏、转义 token 和人类输出脱敏、顶层帮助、Go 最低版本判断、shell 过早报告 running 等问题。dev 的 started 表示进程已启动，驱动就绪通过 `/v1/ready` 查询。独立 reviewer 执行 `go test -count=1 ./cli ./harness ./driver` 通过；修复后再次执行全量测试、race、驱动 E2E 和真实 `dev --json` GUI 调用及正常退出通过。
+
 2026-10-08 无头驱动 review 与修复复核通过，已分配 m2_implementer 进行本批实现；实现后由 m2_reviewer 独立审查。
+
+## 历史中断交接（2026-10-09）
+
+实现 agent 在上一轮遇到使用额度上限而中断；当前没有存活的实现或 review agent。
+已保留未提交的 cli/output.go、cli/doctor.go、单测/命令集成测试草稿及
+cmd/nib、cmd/nibgen、harness 的接入改动。存在代码不代表已验证完成。
+尚无本批最终测试、JSON GUI 验收、独立 review 或验收通过结论。
+自动接续仍 PAUSED；用户要求本批完成后暂停，不启动下一批。
+后续接续先检查现有草稿，完成必要验证与独立 review，避免重做已验收的驱动批次。
 
 ## 范围
 

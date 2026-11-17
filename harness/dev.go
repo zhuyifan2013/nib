@@ -1,9 +1,12 @@
 package harness
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"nib.dev/nib/cli"
 	"nib.dev/nib/driver"
 	"os"
 	"os/exec"
@@ -15,14 +18,17 @@ import (
 
 // DevOptions 是 Dev 编排器的参数。
 type DevOptions struct {
-	Headless bool
-	Driver   driver.Options
-	Pkg      string        // 业务包路径（go build 的参数形态，如 ./cmd/demo）
-	WorkDir  string        // 构建与业务进程的工作目录
-	StateDir string        // 状态目录（socket、构建产物）；默认 <WorkDir>/.nib
-	Interval time.Duration // 文件轮询间隔；默认 250ms
-	NoWatch  bool          // 只构建运行一次，不监听改动
-	Events   string        // 事件流 NDJSON 导出路径（"-" 为 stdout；空 = 不导出）
+	ChildOutput io.Writer
+	ChildError  io.Writer
+	Notify      func(string, any)
+	Headless    bool
+	Driver      driver.Options
+	Pkg         string        // 业务包路径（go build 的参数形态，如 ./cmd/demo）
+	WorkDir     string        // 构建与业务进程的工作目录
+	StateDir    string        // 状态目录（socket、构建产物）；默认 <WorkDir>/.nib
+	Interval    time.Duration // 文件轮询间隔；默认 250ms
+	NoWatch     bool          // 只构建运行一次，不监听改动
+	Events      string        // 事件流 NDJSON 导出路径（"-" 为 stdout；空 = 不导出）
 }
 
 // Dev 运行开发常驻外壳：构建业务二进制，拉起 shell（常驻窗口）与业务进程，
@@ -60,9 +66,21 @@ func Dev(opts DevOptions) error {
 		return err
 	}
 
+	if opts.ChildOutput == nil {
+		opts.ChildOutput = os.Stdout
+	}
+	if opts.ChildError == nil {
+		opts.ChildError = os.Stderr
+	}
+	notify := func(status string, data any) {
+		if opts.Notify != nil {
+			opts.Notify(status, data)
+		}
+	}
+	notify("building", nil)
 	// 1. 构建业务二进制。
 	if err := buildApp(opts.WorkDir, opts.Pkg, binPath); err != nil {
-		return fmt.Errorf("首次构建失败：%w", err)
+		return cli.Fail("dev/build", "Fix compiler errors in the package; inspect stderr or the error message.", err)
 	}
 
 	// 2. 拉起常驻 shell（窗口永不退出的那一层）。
@@ -72,8 +90,8 @@ func Dev(opts DevOptions) error {
 	}
 	shell := exec.Command(self, shellArgs...)
 	shell.Dir = opts.WorkDir
-	shell.Stdout = os.Stdout
-	shell.Stderr = os.Stderr
+	shell.Stdout = opts.ChildOutput
+	shell.Stderr = opts.ChildError
 	shell.Env = os.Environ()
 	if opts.Driver.Token != "" {
 		shell.Env = append(shell.Env, "NIB_DRIVER_TOKEN="+opts.Driver.Token)
@@ -92,13 +110,14 @@ func Dev(opts DevOptions) error {
 	}
 
 	// 3. 拉起业务进程（可替换层）。
-	app, err := startApp(binPath, sockPath, opts.WorkDir)
+	app, err := startAppWithOutput(binPath, sockPath, opts.WorkDir, opts.ChildOutput, opts.ChildError)
 	if err != nil {
 		shell.Process.Kill()
 		<-shellDone
 		return err
 	}
 
+	notify("started", map[string]any{"driver_port": opts.Driver.Port})
 	log.Printf("nib dev: 已启动（pkg=%s）。改 Go 源码即热替换业务进程。", opts.Pkg)
 
 	// 4. 监听改动 → 重建 → 重启业务进程。
@@ -121,20 +140,23 @@ func Dev(opts DevOptions) error {
 				continue
 			}
 			restarting = true
+			notify("rebuilding", nil)
 			go func() { built <- buildApp(opts.WorkDir, opts.Pkg, binPath) }()
 		case err := <-built:
 			restarting = false
 			if err != nil {
+				notify("rebuild_failed", map[string]any{"code": "dev/build"})
 				log.Printf("nib dev: 构建失败，保留旧进程：%v", err)
 				continue
 			}
 			stopApp(app)
-			next, err := startApp(binPath, sockPath, opts.WorkDir)
+			next, err := startAppWithOutput(binPath, sockPath, opts.WorkDir, opts.ChildOutput, opts.ChildError)
 			if err != nil {
 				log.Printf("nib dev: 重启业务进程失败: %v", err)
 				continue
 			}
 			app = next
+			notify("restarted", nil)
 			log.Printf("nib dev: 业务进程已热替换")
 		case err := <-shellDone:
 			stopApp(app)
@@ -162,10 +184,13 @@ func buildApp(workDir, pkg, binPath string) error {
 }
 
 func startApp(binPath, sockPath, workDir string) (*exec.Cmd, error) {
+	return startAppWithOutput(binPath, sockPath, workDir, os.Stdout, os.Stderr)
+}
+func startAppWithOutput(binPath, sockPath, workDir string, out, errOut io.Writer) (*exec.Cmd, error) {
 	cmd := exec.Command(binPath)
 	cmd.Dir = workDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = out
+	cmd.Stderr = errOut
 	cmd.Env = append(os.Environ(), "NIB_SOCK="+sockPath)
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("启动业务进程: %w", err)
@@ -203,6 +228,8 @@ func RunShell(sockPath, eventsPath string) error {
 
 // ShellOptions configures explicitly enabled local automation on the resident shell.
 type ShellOptions struct {
+	Context  context.Context
+	Notify   func(string, any)
 	Headless bool
 	Driver   driver.Options
 }
